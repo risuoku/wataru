@@ -1,11 +1,10 @@
-from .base import RuleBase
+from .base import FileBase
 
 __all__ = [
     'Gitignore',
 ]
 
 
-class Gitignore(RuleBase):
-    filename = '.gitignore'
-    dirpath = ''
+class Gitignore(FileBase):
+    name = '.gitignore'
     required = True

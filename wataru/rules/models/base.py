@@ -2,6 +2,8 @@ from wataru.logging import getLogger
 import wataru.rules.templates as modtpl
 import os.path
 import os
+import copy
+import re
 
 __all__ = [
     'ProjectRoot',
@@ -26,22 +28,121 @@ class RuleBase:
         raise NotImplementedError()
 
 
-class ProjectRoot(RuleBase):
+class NodeBase(RuleBase):
+    name = ''
+
+    def __init__(self, parent = None, name = None):
+        self._config = None
+        self._absparentpath = None
+        self._parentpath = None
+        if parent is not None:
+            self._config = copy.copy(parent.config)
+            self._absparentpath = os.path.join(parent.absparentpath, parent.name)
+            self._parentpath = os.path.join(parent.parentpath, parent.name)
+        self._name = name
+
+    def validate(self):
+        pass
+    
+    @property
+    def config(self):
+        return self._config
+
+    @property
+    def name(self):
+        name = self._name or self.__class__.name
+        if name is None or name == '':
+            raise ValueError('directory name must be set')
+        return name
+
+    @property
+    def absparentpath(self):
+        return self._absparentpath
+
+    @property
+    def parentpath(self):
+        return re.sub(self.config['projectname'], '', self._parentpath)
+
+    @property
+    def abspath(self):
+        return os.path.join(self.absparentpath, self.name)
+
+    @property
+    def path(self):
+        return os.path.join(self.parentpath, self.name)
+
+
+class FileBase(NodeBase):
+    name = ''
+    required = False
 
     def converge(self):
-        targetdir = os.path.join(self._rootdir, self._projectname)
-        if not os.path.isabs(targetdir):
-            targetdir = os.path.join(os.getcwd(), targetdir)
-        logger.debug('project_targetdir: {}'.format(targetdir))
+        abspath = self.abspath
+        logger.debug('target: {}'.format(abspath))
 
-        if os.path.isdir(targetdir):
+        if os.path.isfile(abspath):
             logger.debug('already exist')
         else:
-            os.makedirs(targetdir)
+            tplpath = os.path.join(self.parentpath, self.name + '.tpl')
+            tpl = modtpl.get(tplpath)
+            content = tpl.render(**self.config)
+            with open(self.abspath, 'w', encoding='utf-8') as f:
+                f.write(content + '\n')
             logger.debug('created normally')
 
     def validate(self):
         pass
+
+
+class DirectoryBase(NodeBase):
+
+    def __init__(self, parent = None, name = None):
+        super(DirectoryBase, self).__init__(parent = parent, name = name)
+        self._children_dir = []
+        self._children_file = []
+
+    def converge(self):
+        abspath = self.abspath
+        logger.debug('target: {}'.format(abspath))
+
+        if os.path.isdir(abspath):
+            logger.debug('already exist')
+        else:
+            os.makedirs(abspath)
+            logger.debug('created normally')
+
+        # recursive converge
+        children = self._children_dir + self._children_file
+        for c in children:
+            c.converge()
+
+    def add_node(self, node):
+        if not (isinstance(node, DirectoryBase) or isinstance(node, FileBase)):
+            raise TypeError('node must be DirectoryBase or FileBase object')
+        if isinstance(node, DirectoryBase):
+            self._children_dir.append(node)
+        else:
+            self._children_file.append(node)
+
+
+class ProjectRoot(DirectoryBase):
+    def __init__(self, rootdir, name = 'ml_sample_project'):
+        super(ProjectRoot, self).__init__(name = name)
+        self._abs_rootdir = rootdir if os.path.isabs(rootdir) else os.path.join(os.getcwd(), rootdir)
+
+    @property
+    def absparentpath(self):
+        return self._abs_rootdir
+
+    @property
+    def parentpath(self):
+        return ''
+
+    @property
+    def config(self):
+        return {
+            'projectname': self.name,
+        }
 
 
 class Virtualenv(RuleBase):

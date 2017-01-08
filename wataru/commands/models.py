@@ -37,22 +37,20 @@ class CreateProject(CommandBase):
     ]
 
     def execute(self):
-        # process project root dir
-        logger.debug('process ProjectRoot')
-        obj_project_root = rmodels.ProjectRoot(rootdir=self._ns.rootdir)
-        obj_project_root.converge()
+        # build node graph
+        obj_proot = rmodels.ProjectRoot(rootdir=self._ns.rootdir)
+        obj_proot.add_node(rmodels.Gitignore(parent=obj_proot))
+        obj_docs = rmodels.DocsDirectory(parent=obj_proot)
+        obj_docs.add_node(rmodels.ProjectSummary(parent=obj_docs))
+        obj_proot.add_node(obj_docs)
+
+        # process node graph
+        obj_proot.converge()
 
         # process virtualenv
         logger.debug('process Virtualenv')
         obj_virtualenv = rmodels.Virtualenv(rootdir=self._ns.rootdir)
         obj_virtualenv.converge()
-
-        # process rules
-        cls_all_rules = [getattr(rmodels, a) for a in rmodels.RULE_LIST]
-        for cls in cls_all_rules:
-            logger.debug('process {}'.format(cls.__name__))
-            obj = cls(rootdir=self._ns.rootdir)
-            obj.converge()
 
 
 class Test(CommandBase):
