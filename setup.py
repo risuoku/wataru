@@ -10,7 +10,7 @@ EXCLUDE_FROM_PACKAGES = []
 setup (
     name='wataru',
     version=_version,
-    author='risuo',
+    author='risuoku',
     author_email='risuo.data@gmail.com',
     packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
     include_package_data=True,

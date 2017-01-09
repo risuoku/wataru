@@ -37,15 +37,12 @@ class CreateProject(CommandBase):
     ]
 
     def execute(self):
-        # build node graph
-        obj_proot = rmodels.ProjectRoot(rootdir=self._ns.rootdir)
-        obj_proot.add_node(rmodels.Gitignore(parent=obj_proot))
-        obj_docs = rmodels.DocsDirectory(parent=obj_proot)
-        obj_docs.add_node(rmodels.ProjectSummary(parent=obj_docs))
-        obj_proot.add_node(obj_docs)
+        # get project rule graph
+        from wataru.rules import graph
+        rg = graph.get_default()
 
-        # process node graph
-        obj_proot.converge()
+        # process project
+        rg.project.converge()
 
         # process virtualenv
         logger.debug('process Virtualenv')

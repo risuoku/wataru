@@ -29,7 +29,8 @@ class RuleBase:
 
 
 class NodeBase(RuleBase):
-    name = ''
+    name_default = ''
+    required_default = False
 
     def __init__(self, parent = None, name = None):
         self._config = None
@@ -50,7 +51,7 @@ class NodeBase(RuleBase):
 
     @property
     def name(self):
-        name = self._name or self.__class__.name
+        name = self._name or self.__class__.name_default
         if name is None or name == '':
             raise ValueError('directory name must be set')
         return name
@@ -73,8 +74,6 @@ class NodeBase(RuleBase):
 
 
 class FileBase(NodeBase):
-    name = ''
-    required = False
 
     def converge(self):
         abspath = self.abspath
