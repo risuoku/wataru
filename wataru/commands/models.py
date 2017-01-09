@@ -37,9 +37,17 @@ class CreateProject(CommandBase):
     ]
 
     def execute(self):
+        # get theme
+        from wataru.rules import themes
+        tm = themes.get_default()
+
+        # setup template loader
+        from wataru.rules import templates
+        templates.setenv(tm.abs_tpldir)
+
         # get project rule graph
         from wataru.rules import graph
-        rg = graph.get_default()
+        rg = graph.get_by_theme(tm)
 
         # process project
         rg.project.converge()

@@ -127,7 +127,7 @@ class DirectoryBase(NodeBase):
 class ProjectRoot(DirectoryBase):
     def __init__(self, rootdir, name = 'ml_sample_project'):
         super(ProjectRoot, self).__init__(name = name)
-        self._abs_rootdir = rootdir if os.path.isabs(rootdir) else os.path.join(os.getcwd(), rootdir)
+        self._abs_rootdir = os.path.abspath(rootdir)
 
     @property
     def absparentpath(self):

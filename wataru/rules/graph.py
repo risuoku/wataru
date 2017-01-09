@@ -62,5 +62,5 @@ class RuleGraph:
         return self._project
 
 
-def get_default():
-    return RuleGraph(_default).build()
+def get_by_theme(tm):
+    return RuleGraph(tm.config).build()
