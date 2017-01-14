@@ -24,8 +24,8 @@ def execute_from_argument(argv = None):
     cmd_obj = parser.parse_and_create(argv_core, subcmd) # exit if help or invalid
 
     try:
-        logger.info(sys.argv)
-        logger.info(cmd_obj)
         cmd_obj.execute()
-    except:
-        raise
+        logger.info('{} normally completed.'.format(subcmd))
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        sys.exit(1)

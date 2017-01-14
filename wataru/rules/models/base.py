@@ -1,28 +1,18 @@
 from wataru.logging import getLogger
 import wataru.rules.templates as modtpl
+import wataru.utils as utils
 import os.path
 import os
 import copy
 import re
 
-__all__ = [
-    'ProjectRoot',
-    'Virtualenv',
-]
 
 logger = getLogger(__name__)
 
 
 class RuleBase:
-    def __init__(self, rootdir = '', render_param = {}, projectname = 'sample_ml_project'):
-        self._rootdir = rootdir
-        self._render_param = render_param
-        self._projectname = projectname
-
     def converge(self):
-        tplpath = os.path.join(self.dirpath, self.filename + '.tpl')
-        tpl = modtpl.get(tplpath)
-        print(tpl.render(**self._render_param))
+        raise NotImplementedError()
 
     def validate(self):
         raise NotImplementedError()
@@ -85,8 +75,7 @@ class FileBase(NodeBase):
             tplpath = os.path.join(self.parentpath, self.name + '.tpl')
             tpl = modtpl.get(tplpath)
             content = tpl.render(**self.config)
-            with open(self.abspath, 'w', encoding='utf-8') as f:
-                f.write(content + '\n')
+            utils.save_file(self.abspath, content)
             logger.debug('created normally')
 
     def validate(self):
@@ -110,10 +99,7 @@ class DirectoryBase(NodeBase):
             os.makedirs(abspath)
             logger.debug('created normally')
 
-        # recursive converge
-        children = self._children_dir + self._children_file
-        for c in children:
-            c.converge()
+        self._converge_children()
 
     def add_node(self, node):
         if not (isinstance(node, DirectoryBase) or isinstance(node, FileBase)):
@@ -123,31 +109,7 @@ class DirectoryBase(NodeBase):
         else:
             self._children_file.append(node)
 
-
-class ProjectRoot(DirectoryBase):
-    def __init__(self, rootdir, name = 'ml_sample_project'):
-        super(ProjectRoot, self).__init__(name = name)
-        self._abs_rootdir = os.path.abspath(rootdir)
-
-    @property
-    def absparentpath(self):
-        return self._abs_rootdir
-
-    @property
-    def parentpath(self):
-        return ''
-
-    @property
-    def config(self):
-        return {
-            'projectname': self.name,
-        }
-
-
-class Virtualenv(RuleBase):
-
-    def converge(self):
-        pass
-
-    def validate(self):
-        pass
+    def _converge_children(self):
+        children = self._children_dir + self._children_file
+        for c in children:
+            c.converge()

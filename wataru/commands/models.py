@@ -48,14 +48,21 @@ class CreateProject(CommandBase):
         # get project rule graph
         from wataru.rules import graph
         rg = graph.get_by_theme(tm)
+        project = rg.project
+
+        # add extra nodes
+        mddir = rmodels.get_metadatadirectory(project)
+        project.add_node(mddir)
 
         # process project
-        rg.project.converge()
+        project.converge()
 
-        # process virtualenv
-        logger.debug('process Virtualenv')
-        obj_virtualenv = rmodels.Virtualenv(rootdir=self._ns.rootdir)
-        obj_virtualenv.converge()
+        # process meta
+        if tm.config.get('meta') is not None:
+            mt = tm.config['meta']
+            if mt.get('jupyter') is True:
+                jobj = rmodels.SetupJupyter(mddir)
+                jobj.converge()
 
 
 class Test(CommandBase):

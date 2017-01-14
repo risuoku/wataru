@@ -4,28 +4,6 @@ from wataru.rules.models import (
     ProjectRoot,
 )
 
-_default = {
-    'name': 'ml_sample',
-    'type': 'project',
-    'rootdir': '',
-    'children': [
-        {
-            'name': '.gitignore',
-            'type': 'file',
-        },
-        {
-            'name': 'docs',
-            'type': 'directory',
-            'children': [
-                {
-                    'name': 'summary.md',
-                    'type': 'file',
-                }
-            ],
-        }
-    ]
-}
-
 
 class RuleGraph:
     def __init__(self, graph_dict):
@@ -36,8 +14,13 @@ class RuleGraph:
         project_name = self._gd['name']
         project_rootdir = self._gd['rootdir']
         project_children = self._gd.get('children')
+        project_venv = self._gd.get('virtualenv', True)
 
-        self._project = ProjectRoot(rootdir=project_rootdir, name=project_name)
+        self._project = ProjectRoot (
+            rootdir = project_rootdir,
+            name = project_name,
+            virtualenv = project_venv
+        )
         if project_children is None:
             return self # プロジェクトが空なので終了
 

@@ -1,7 +1,9 @@
-name: 'ml_sample'
-type: 'project'
-rootdir: ''
-children:
+body:
+  name: 'ml_sample'
+  type: 'project'
+  rootdir: ''
+  virtualenv: false
+  children:
     - name: '.gitignore'
       type: 'file'
     - name: 'docs'
@@ -9,3 +11,6 @@ children:
       children:
         - name: 'summary.md'
           type: 'file'
+
+meta:
+  jupyter: true
