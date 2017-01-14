@@ -15,7 +15,7 @@ body:
       children:
         - name: '.gitkeep'
           type: 'file'
-    - name: 'notebooks'
+    - name: 'workspace'
       type: 'directory'
       children:
         - name: '.gitkeep'

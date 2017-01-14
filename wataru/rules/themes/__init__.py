@@ -38,6 +38,7 @@ class Theme:
             self._config = getattr(mod, self._name)
             logger.debug('used dict')
 
+        self._validate()
         return self
     
     @property
@@ -48,9 +49,42 @@ class Theme:
     def abs_tpldir(self):
         return self._abs_tpldir
 
+    @property
+    def top_node(self):
+        return self._config.get('body') or self._config
+
+    @property
+    def meta(self):
+        return self._config.get('meta')
+
+    def _validate(self):
+        # self._config must be set
+        if self._config is None:
+            raise ValueError('invalid config status')
+
+        # top node_type must be 'project'
+        if not self.top_node['type'] == 'project':
+            raise ValueError('invalid node type .. top node_type must be project')
+
+    def update_project(self, key, value):
+        _project = self.top_node
+        _project.update({key: value})
+        return self
+
+    def update_meta(self, key, value):
+        if self.meta is None:
+            self._config.update({'meta': {}})
+        self._config['meta'].update({key: value})
+        return self
+
 
 def get_default():
     return Theme (
         path = os.path.join(settings.WATARU_BASE_DIR_PATH, 'rules', 'themes', 'default'), 
         name = 'default'
+    ).build()
+
+def get(path):
+    return Theme (
+        path = path
     ).build()

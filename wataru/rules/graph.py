@@ -6,8 +6,8 @@ from wataru.rules.models import (
 
 
 class RuleGraph:
-    def __init__(self, graph_dict):
-        self._gd = graph_dict.get('body') or graph_dict
+    def __init__(self, tm):
+        self._gd = tm.top_node
         self._project = None
 
     def build(self):
@@ -46,4 +46,4 @@ class RuleGraph:
 
 
 def get_by_theme(tm):
-    return RuleGraph(tm.config).build()
+    return RuleGraph(tm).build()

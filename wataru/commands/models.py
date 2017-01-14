@@ -33,13 +33,23 @@ class CommandBase:
 class CreateProject(CommandBase):
     options = [
         Option('--name', action='store', dest='projectname'),
-        Option('--root-dir', action='store', dest='rootdir', default=''),
+        Option('--root-dir', action='store', dest='rootdir'),
+        Option('--enable-virtualenv', action='store_true', default=False, dest='virtualenv_enabled'),
+        Option('--theme-dir', action='store', dest='themedir'),
     ]
 
     def execute(self):
         # get theme
         from wataru.rules import themes
-        tm = themes.get_default()
+        tm = themes.get_default() if self._ns.themedir is None else themes.get(self._ns.themedir)
+
+        # update theme
+        if self._ns.projectname is not None:
+            tm.update_project('name', self._ns.projectname)
+        if self._ns.rootdir is not None:
+            tm.update_project('rootdir', self._ns.rootdir)
+        if self._ns.virtualenv_enabled:
+            tm.update_project('virtualenv', True)
 
         # setup template loader
         from wataru.rules import templates
