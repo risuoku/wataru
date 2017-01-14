@@ -6,10 +6,19 @@ body:
   children:
     - name: '.gitignore'
       type: 'file'
-    - name: 'docs'
+    - name: 'README.md'
+      type: 'file'
+    - name: 'requirements.txt'
+      type: 'file'
+    - name: 'modules'
       type: 'directory'
       children:
-        - name: 'summary.md'
+        - name: '.gitkeep'
+          type: 'file'
+    - name: 'notebooks'
+      type: 'directory'
+      children:
+        - name: '.gitkeep'
           type: 'file'
 
 meta:
