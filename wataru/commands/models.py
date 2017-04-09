@@ -68,11 +68,9 @@ class CreateProject(CommandBase):
         project.converge()
 
         # process meta
-        if tm.config.get('meta') is not None:
-            mt = tm.config['meta']
-            if mt.get('jupyter') is True:
-                jobj = rmodels.SetupJupyter(mddir)
-                jobj.converge()
+        mt = tm.config['meta']
+        jobj = rmodels.SetupJupyter(mddir, project.abspath, mt.get('jupyter'))
+        jobj.converge()
 
 
 class Test(CommandBase):

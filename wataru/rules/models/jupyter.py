@@ -11,6 +11,7 @@ import wataru.rules.templates as modtpl
 import os
 import shutil
 import re
+import copy
 
 __all__ = [
     'SetupJupyter',
@@ -25,18 +26,39 @@ class SetupJupyter(RuleBase):
     kerneldir_default = 'wataru_default'
     ipythonprofile_default = 'wataru_default'
 
-    def __init__(self, md, kerneldir = None, ipythonprofile = None):
+    def __init__(self, md, projectroot, config, kerneldir = None, ipythonprofile = None):
         self._md_path = md.path
         self._md_file = md.metadata
         self._kerneldir = kerneldir or self.__class__.kerneldir_default
         self._ipythonprofile = ipythonprofile or self.__class__.ipythonprofile_default
+        self._config = config
+        self._projectroot = projectroot
 
     def converge(self):
+        self._validate()
+
+        # check if install
+        if not self._config['install']:
+            return
+
+        # setup environ variables
+        internal_ipythondir = None
+        internal_jupyterpath = None
+        if self._config['config_location'] == 'internal':
+            internal_ipythondir = os.path.join(self._projectroot, '.ipython')
+            internal_jupyterpath = os.path.join(self._projectroot, '.jupyter')
+        logger.debug(internal_ipythondir)
+
         # for jupyter
+        if internal_jupyterpath is not None:
+            os.environ['JUPYTER_PATH'] = internal_jupyterpath
         ksm = KernelSpecManager()
         kernel_done = False
         abskd = None
         for kd in ksm.kernel_dirs:
+            if internal_jupyterpath is not None:
+                if not kd == os.path.join(internal_jupyterpath, 'kernels'):
+                    continue
             abskd = os.path.join(kd, self._kerneldir)
             if os.path.isdir(abskd): # 存在していたらbreak
                 logger.debug('already exist')
@@ -58,6 +80,8 @@ class SetupJupyter(RuleBase):
         # for IPython
         ipythonprofile_done = False
         try:
+            if internal_ipythondir is not None:
+                os.environ['IPYTHONDIR'] = internal_ipythondir
             IPython.paths.locate_profile(self._ipythonprofile)
             ipythonprofile_done = True
         except Exception as e:
@@ -113,3 +137,7 @@ class SetupJupyter(RuleBase):
                 })
         )
         logger.debug('metadata file updated.')
+
+    def _validate(self):
+        if self._config is None:
+            raise ValueError('config must be set!')
