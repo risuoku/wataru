@@ -10,6 +10,8 @@ body:
       type: 'file'
     - name: 'requirements.txt'
       type: 'file'
+    - name: 'Dockerfile'
+      type: 'file'
     - name: 'modules'
       type: 'directory'
       children:

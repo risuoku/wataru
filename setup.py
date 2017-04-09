@@ -18,5 +18,10 @@ setup (
         'console_scripts': [
             'wataru = wataru.commands:execute_from_argument',
         ]
-    }
+    },
+    install_requires=[
+        'jupyter',
+        'PyYAML',
+        'Jinja2',
+    ],
 )
