@@ -24,12 +24,17 @@ def get_shellcmd_result(s):
 
 
 def get_available_device_id():
+    """ memory使用量の最も小さいGPU idを返す """
     if len(get_shellcmd_result('which nvidia-smi')) == 0:
         # NVIDIAのGPUが利用できない
         return None
     else:
-        r = list(map(int, get_shellcmd_result('nvidia-smi --query-gpu=index --format=csv,noheader')))
+        r = get_shellcmd_result('nvidia-smi --query-gpu=index,memory.used --format=csv,noheader')
         if len(r) == 0:
             return None
         else:
-            return r[0]
+            def extract_idx_and_usedmemory(x):
+                g = re.search('^([0-9]+),(\s+)?([0-9]+)(\s+)?MiB$', x).groups()
+                return int(g[0]), int(g[2]) # 0: gpu index, 2: used memory
+            sorted_gpus = sorted(map(extract_idx_and_usedmemory, r), key=lambda x: x[1])
+            return sorted_gpus[0][0]
