@@ -5,3 +5,18 @@ __pycache__
 MANIFEST
 dist/
 build/
+_run.py
+
+# for virtualenv
+lib
+include
+bin
+share
+pip-selfcheck.json
+
+cmd
+do_tests.sh
+ml_sample/
+remove_sample.sh
+tests/
+update_package.sh

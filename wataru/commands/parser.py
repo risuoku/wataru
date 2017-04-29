@@ -1,37 +1,19 @@
 import argparse
-import wataru.commands.models as cmdmodels
-import wataru.utils as utils
-import importlib
+import sys
 
-_description = 'process wataru commands'
-_cls_subcommands = [getattr(cmdmodels, a) for a in cmdmodels.__all__]
+from . import models
 
 
 class WataruArgumentParser(argparse.ArgumentParser):
-    def __init__(self, *args, **kwargs):
-        super(WataruArgumentParser, self).__init__(description=_description)
-    
     def build(self):
-        # build for subcommands
-        subparsers = self.add_subparsers(help='wataru commands help')
-        for cls in _cls_subcommands:
-            p_name = utils.camel2snake(cls.__name__)
-            subp = subparsers.add_parser(p_name, help='{} help'.format(p_name))
-            options = cls.default_options + cls.options
-            for op in options:
-                args, kwargs = op.item
-                subp.add_argument(*args, **kwargs)
+        self._apply_config(self, models.tree, 'root')
         return self
 
-    def parse_and_create(self, args, subcmd):
-        raw_ns = self.parse_args(args = args)
-        if subcmd is not None:
-            cls = getattr(cmdmodels, utils.snake2camel(subcmd))
-            return cls(raw_ns)
+    def _apply_config(self, parser, config, current_name):
+        if isinstance(config, dict):
+            subparsers = parser.add_subparsers(dest='subparser__' + current_name)
+            for k, v in config.items():
+                p2 = subparsers.add_parser(k)
+                self._apply_config(p2, v, '{}_{}'.format(current_name, k))
         else:
-            return None
-
-
-def get():
-    parser = WataruArgumentParser(_description)
-    return parser.build()
+            config.apply_arguments(parser)
