@@ -1,2 +1,0 @@
-class Inspector:
-    pass

@@ -1,5 +1,5 @@
 body:
-  name: 'ml_sample'
+  name: 'sample_project'
   type: 'project'
   rootdir: ''
   virtualenv: false
@@ -10,20 +10,28 @@ body:
       type: 'file'
     - name: 'requirements.txt'
       type: 'file'
+    - name: 'env.sh'
+      type: 'file'
+    - name: 'config.yml'
+      type: 'file'
     - name: 'Dockerfile'
       type: 'file'
-    - name: 'modules'
+    - name: 'scenarios'
       type: 'directory'
       children:
-        - name: '.gitkeep'
-          type: 'file'
-    - name: 'workspace'
-      type: 'directory'
-      children:
-        - name: '.gitkeep'
-          type: 'file'
+        - name: 'sample'
+          type: 'directory'
+          children:
+            - name: 'config.py'
+              type: 'file'
+            - name: 'entry.py'
+              type: 'file'
+            - name: 'provider.py'
+              type: 'file'
+            - name: 'scenario.py'
+              type: 'file'
 
 meta:
   jupyter:
-    install: true
+    install: false
     config_location: 'default'

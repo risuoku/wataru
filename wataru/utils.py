@@ -3,6 +3,7 @@ import shlex
 import random
 import time
 import subprocess
+import hashlib
 import wataru.exceptions as wtex
 from wataru.logging import getLogger
 
@@ -55,3 +56,9 @@ def get_random_string(length=12, allowed_chars=DEFAULT_ALLOWED_CHARS):
 def save_file(path, content):
     with open(path, 'w', encoding='utf-8') as f:
         f.write(content + '\n')
+
+
+def get_hash(s):
+    if isinstance(s, str):
+        s = s.encode('utf-8')
+    return hashlib.sha256(s).hexdigest()

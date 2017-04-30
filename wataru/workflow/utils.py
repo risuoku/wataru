@@ -1,6 +1,7 @@
 import subprocess
 import shlex
 import re
+import os
 
 
 class ConsoleCommand:
@@ -38,3 +39,17 @@ def get_available_device_id():
                 return int(g[0]), int(g[2]) # 0: gpu index, 2: used memory
             sorted_gpus = sorted(map(extract_idx_and_usedmemory, r), key=lambda x: x[1])
             return sorted_gpus[0][0]
+
+
+def get_setttings_from_config(cnf, base_path):
+    management_dir = os.path.join(base_path, cnf['management_dir'])
+    storage_dir = os.path.join(management_dir, cnf['storage_dir'])
+    scenario_entry_module_name, scenario_entry_function_name = tuple(cnf['scenario_entry_name'].split(':'))
+    return {
+        'project_base_path': base_path,
+        'management_dir': management_dir,
+        'storage_dir': storage_dir,
+        'scenarios_module_name': cnf['scenarios_module_name'],
+        'scenario_entry_module_name': scenario_entry_module_name,
+        'scenario_entry_function_name': scenario_entry_function_name,
+    }

@@ -1,0 +1,5 @@
+#!/bin/bash
+export JUPYTER_PATH=${PWD}/.jupyter
+export IPYTHONDIR=${PWD}/.ipython
+ADDITIONAL_PYTHONPATH="${PWD}:"
+export PYTHONPATH=${ADDITIONAL_PYTHONPATH}`echo $PYTHONPATH | sed -E "s#${ADDITIONAL_PYTHONPATH}##g"`
