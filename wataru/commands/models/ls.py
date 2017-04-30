@@ -3,10 +3,9 @@ from wataru.logging import getLogger
 import wataru.workflow.utils as wfutils
 import wataru.workflow.project as wfproject
 
-import yaml
 import os
 import sys
-import importlib
+import pprint
 
 logger = getLogger(__name__)
 
@@ -22,6 +21,5 @@ class Scenario(CommandBase):
         # create scenario
         if settings['project_base_path'] not in sys.path:
             sys.path.append(settings['project_base_path'])
-        smod = importlib.import_module('.'.join([settings['scenarios_module_name'], namespace.scenarioname, settings['scenario_entry_module_name']]))
-        sobj = getattr(smod, settings['scenario_entry_function_name'])()
-        wfproject.materialize(sobj, os.path.join(settings['project_base_path'], settings['scenarios_module_name'], namespace.scenarioname), settings['materialized_dir'])
+        _list = wfproject.list_materialized(namespace.scenarioname, settings['materialized_dir'])
+        pprint.pprint(sorted(_list, key=lambda x: x['updated_at'], reverse=True))

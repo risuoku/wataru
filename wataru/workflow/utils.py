@@ -2,6 +2,7 @@ import subprocess
 import shlex
 import re
 import os
+import yaml
 
 
 class ConsoleCommand:
@@ -41,15 +42,22 @@ def get_available_device_id():
             return sorted_gpus[0][0]
 
 
-def get_setttings_from_config(cnf, base_path):
-    management_dir = os.path.join(base_path, cnf['management_dir'])
-    storage_dir = os.path.join(management_dir, cnf['storage_dir'])
-    scenario_entry_module_name, scenario_entry_function_name = tuple(cnf['scenario_entry_name'].split(':'))
+def get_setttings_from_configpath(configpath):
+    config = None
+    config_filepath = os.path.join(configpath, 'config.yml')
+    with open(config_filepath) as f:
+        config = yaml.load(f)
+
+    management_dir = os.path.join(configpath, config['management_dir'])
+    storage_dir = os.path.join(management_dir, config['storage_dir'])
+    materialized_dir = os.path.join(storage_dir, config['materialized_name'])
+    scenario_entry_module_name, scenario_entry_function_name = tuple(config['scenario_entry_name'].split(':'))
     return {
-        'project_base_path': base_path,
+        'project_base_path': configpath,
         'management_dir': management_dir,
         'storage_dir': storage_dir,
-        'scenarios_module_name': cnf['scenarios_module_name'],
+        'materialized_dir': materialized_dir,
+        'scenarios_module_name': config['scenarios_module_name'],
         'scenario_entry_module_name': scenario_entry_module_name,
         'scenario_entry_function_name': scenario_entry_function_name,
     }

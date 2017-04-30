@@ -1,8 +1,7 @@
-import importlib
 from . import create
 from . import materialize
-
-from .base import CommandBase
+from . import ls
+from . import run
 
 
 # attach models tree
@@ -11,5 +10,7 @@ tree = {
         'scenario': create.Scenario(),
         'project': create.Project(),
     },
-    'materialize': materialize.Scenario()
+    'materialize': materialize.Scenario(),
+    'ls': ls.Scenario(),
+    'run': run.Materialized(),
 }

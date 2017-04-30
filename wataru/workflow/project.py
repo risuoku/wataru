@@ -22,10 +22,9 @@ def ignore_for_copytree(d, files):
     return ignore_files
 
 
-def materialize(scenario, scenario_path, storage_path):
+def materialize(scenario, scenario_path, mtpath):
     if not isinstance(scenario, Scenario):
         raise TypeError('`scenario` must be Scenario')
-    mtpath = os.path.join(storage_path, 'materialized')
     os.makedirs(mtpath, exist_ok=True)
 
     #本当はconfigがjson serializableになってるのが正しいがまだ出来ないので暫定でこうする
@@ -54,8 +53,9 @@ def materialize(scenario, scenario_path, storage_path):
         _now = datetime.datetime.now()
         db_meta['name2id'][scenario.name].append({
             'id': scenario_id,
-            'created': _now,
-            'updated': _now,
+            'created_at': _now,
+            'updated_at': _now,
+            'status': 'created',
         })
         with open(meta_file, 'wb') as f:
             pickle.dump(db_meta, f)
@@ -65,3 +65,17 @@ def materialize(scenario, scenario_path, storage_path):
         shutil.rmtree(spath)
         logger.debug('remove materialized scenario {} done.'.format(spath))
         raise 
+
+
+def list_materialized(scenario_name, mtpath):
+    meta_file = os.path.join(mtpath, 'meta.pickle')
+    if not os.path.isfile(meta_file):
+        return []
+    else:
+        with open(meta_file, 'rb') as f:
+            db_meta = pickle.load(f)
+        name2id = db_meta['name2id']
+        if scenario_name not in name2id:
+            return []
+        else:
+            return name2id[scenario_name]

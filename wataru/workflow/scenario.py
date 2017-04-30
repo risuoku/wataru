@@ -1,5 +1,11 @@
 from wataru.logging import getLogger
 
+import os
+import sys
+import importlib
+import pickle
+import datetime
+
 logger = getLogger(__name__)
 
 
@@ -47,3 +53,43 @@ class Scenario:
 
     def load(self):
         return None
+
+
+def run(materialized_id, settings):
+    target_dir = os.path.join(settings['materialized_dir'], materialized_id)
+    if os.path.isdir(target_dir):
+        sys.path.append(settings['materialized_dir'])
+        smod = importlib.import_module(materialized_id + '.' + settings['scenario_entry_module_name'])
+        sobj = getattr(smod, settings['scenario_entry_function_name'])()
+
+        # check status
+        meta_file = os.path.join(settings['materialized_dir'], 'meta.pickle')
+        with open(meta_file, 'rb') as f:
+            db_meta = pickle.load(f)
+        _found = False
+        _idx = None
+        for idx, c in enumerate(db_meta['name2id'][sobj.name]):
+            if c['id'] == materialized_id:
+                _idx = idx
+                _found = True
+                break
+        if not _found:
+            raise Exception('unknown error occured!')
+        
+        if db_meta['name2id'][sobj.name][_idx]['status'] == 'completed':
+            raise Exception('{} already completed.'.format(materialized_id))
+
+        # run
+        sobj.run()
+
+        # update meta
+        _now = datetime.datetime.now()
+        db_meta['name2id'][sobj.name][_idx].update({
+            'updated_at': _now,
+            'status': 'completed',
+        })
+        with open(meta_file, 'wb') as f:
+            pickle.dump(db_meta, f)
+        logger.debug('run {} done.'.format(materialized_id))
+    else:
+        raise Exception('materialized not found!')

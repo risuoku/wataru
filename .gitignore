@@ -17,6 +17,7 @@ pip-selfcheck.json
 cmd
 do_tests.sh
 ml_sample/
+sample_project
 remove_sample.sh
 tests/
 update_package.sh
