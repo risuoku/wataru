@@ -48,16 +48,30 @@ def get_setttings_from_configpath(configpath):
     with open(config_filepath) as f:
         config = yaml.load(f)
 
-    management_dir = os.path.join(configpath, config['management_dir'])
-    storage_dir = os.path.join(management_dir, config['storage_dir'])
-    materialized_dir = os.path.join(storage_dir, config['materialized_name'])
-    scenario_entry_module_name, scenario_entry_function_name = tuple(config['scenario_entry_name'].split(':'))
+    # general settings
+    config_general = config['general']
+    management_dir = os.path.join(configpath, config_general['management_dir'])
+    storage_dir = os.path.join(management_dir, config_general['storage_dir'])
+    materialized_dir = os.path.join(storage_dir, config_general['materialized_name'])
+    scenario_entry_module_name, scenario_entry_function_name = tuple(config_general['scenario_entry_name'].split(':'))
+    
+    # db settings
+    config_db = config['db']
+    if not config_db['vendor'] == 'sqlite':
+        raise Exception('{} is unsupported'.format(config_db['vendor']))
+    db_uri = '{}://{}'.format(config_db['vendor'], os.path.join(storage_dir, config_db['dbname']))
+
     return {
-        'project_base_path': configpath,
-        'management_dir': management_dir,
-        'storage_dir': storage_dir,
-        'materialized_dir': materialized_dir,
-        'scenarios_module_name': config['scenarios_module_name'],
-        'scenario_entry_module_name': scenario_entry_module_name,
-        'scenario_entry_function_name': scenario_entry_function_name,
+        'general': {
+            'project_base_path': configpath,
+            'management_dir': management_dir,
+            'storage_dir': storage_dir,
+            'materialized_dir': materialized_dir,
+            'scenarios_module_name': config_general['scenarios_module_name'],
+            'scenario_entry_module_name': scenario_entry_module_name,
+            'scenario_entry_function_name': scenario_entry_function_name,
+        },
+        'db': {
+            'uri': db_uri,
+        },
     }

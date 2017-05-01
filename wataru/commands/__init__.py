@@ -54,7 +54,7 @@ def execute_from_argument(argv = None):
         if isinstance(cmd, dict):
             parser.parse_args(rawargs + ['--help'])
         try:
-            cmd.execute(namespace)
+            cmd.execute_all(namespace)
             logger.info('{} normally completed.'.format(' '.join(cmd_stack)))
         except Exception as e:
             logger.error(e, exc_info=True)

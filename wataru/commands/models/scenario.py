@@ -1,7 +1,7 @@
 from wataru.commands.models.base import CommandBase
 from wataru.logging import getLogger
-import wataru.workflow.utils as wfutils
 import wataru.workflow.project as wfproject
+import wataru.workflow.state as wfstate
 
 import yaml
 import os
@@ -18,14 +18,14 @@ class Materialize(CommandBase):
         parser.add_argument('scenarioname', action='store')
 
     def execute(self, namespace):
-        settings = wfutils.get_setttings_from_configpath(os.path.abspath(namespace.configpath))
-
-        # create scenario
-        if settings['project_base_path'] not in sys.path:
-            sys.path.append(settings['project_base_path'])
-        smod = importlib.import_module('.'.join([settings['scenarios_module_name'], namespace.scenarioname, settings['scenario_entry_module_name']]))
-        sobj = getattr(smod, settings['scenario_entry_function_name'])()
-        wfproject.materialize(sobj, os.path.join(settings['project_base_path'], settings['scenarios_module_name'], namespace.scenarioname), settings['materialized_dir'])
+        settings_general = self.settings['general']
+        smod = importlib.import_module('.'.join([settings['scenarios_module_name'], namespace.scenarioname, settings_general['scenario_entry_module_name']]))
+        sobj = getattr(smod, settings_general['scenario_entry_function_name'])()
+        wfproject.materialize(
+            sobj,
+            os.path.join(settings_general['project_base_path'], settings_general['scenarios_module_name'], namespace.scenarioname),
+            settings_general['materialized_dir']
+        )
 
 
 class Ls(CommandBase):
@@ -33,10 +33,6 @@ class Ls(CommandBase):
         parser.add_argument('--config-path', action='store', dest='configpath', default='')
 
     def execute(self, namespace):
-        settings = wfutils.get_setttings_from_configpath(os.path.abspath(namespace.configpath))
-
-        # create scenario
-        if settings['project_base_path'] not in sys.path:
-            sys.path.append(settings['project_base_path'])
-        _list = wfproject.list_scenarios(settings['materialized_dir'])
+        settings_general = self.settings['general']
+        _list = wfproject.list_scenarios(settings_general['materialized_dir'])
         pprint.pprint(_list)
