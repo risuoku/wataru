@@ -1,5 +1,11 @@
 from wataru.logging import getLogger
 
+from wataru.workflow.state import (
+    Material as ModelMaterial,
+    session_scope,
+    get_session,
+)
+
 import os
 import sys
 import importlib
@@ -55,41 +61,27 @@ class Scenario:
         return None
 
 
-def run(materialized_id, settings):
-    target_dir = os.path.join(settings['materialized_dir'], materialized_id)
+def run(material_id, settings):
+    target_dir = os.path.join(settings['materialized_dir'], material_id)
     if os.path.isdir(target_dir):
         sys.path.append(settings['materialized_dir'])
-        smod = importlib.import_module(materialized_id + '.' + settings['scenario_entry_module_name'])
+        smod = importlib.import_module(material_id + '.' + settings['scenario_entry_module_name'])
         sobj = getattr(smod, settings['scenario_entry_function_name'])()
 
         # check status
-        meta_file = os.path.join(settings['materialized_dir'], 'meta.pickle')
-        with open(meta_file, 'rb') as f:
-            db_meta = pickle.load(f)
-        _found = False
-        _idx = None
-        for idx, c in enumerate(db_meta['name2id'][sobj.name]):
-            if c['id'] == materialized_id:
-                _idx = idx
-                _found = True
-                break
-        if not _found:
-            raise Exception('unknown error occured!')
-        
-        if db_meta['name2id'][sobj.name][_idx]['status'] == 'completed':
-            raise Exception('{} already completed.'.format(materialized_id))
+        rosess = get_session()
+        mm = rosess.query(ModelMaterial).filter_by(status=ModelMaterial.Status.COMPLETED.value, id=material_id)
+        if mm.count() > 0:
+            raise Exception('{} already completed.'.format(material_id))
 
         # run
-        sobj.run()
+        with session_scope() as session:
+            sobj.run()
 
-        # update meta
-        _now = datetime.datetime.now()
-        db_meta['name2id'][sobj.name][_idx].update({
-            'updated_at': _now,
-            'status': 'completed',
-        })
-        with open(meta_file, 'wb') as f:
-            pickle.dump(db_meta, f)
-        logger.debug('run {} done.'.format(materialized_id))
+            # update meta
+            mm = session.query(ModelMaterial).filter_by(id=material_id).first()
+            mm.updated_at = datetime.datetime.now()
+            mm.status = ModelMaterial.Status.COMPLETED.value
+        logger.debug('run {} done.'.format(material_id))
     else:
-        raise Exception('materialized not found!')
+        raise Exception('material not found!')

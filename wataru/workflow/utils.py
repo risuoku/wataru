@@ -59,7 +59,7 @@ def get_setttings_from_configpath(configpath):
     config_db = config['db']
     if not config_db['vendor'] == 'sqlite':
         raise Exception('{} is unsupported'.format(config_db['vendor']))
-    db_uri = '{}://{}'.format(config_db['vendor'], os.path.join(storage_dir, config_db['dbname']))
+    db_uri = '{}:///{}'.format(config_db['vendor'], os.path.join(storage_dir, config_db['dbname']))
 
     return {
         'general': {

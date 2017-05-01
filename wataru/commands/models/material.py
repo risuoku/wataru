@@ -17,9 +17,17 @@ class Ls(CommandBase):
 
     def execute(self, namespace):
         # create scenario
-        seggings_general = self.settings['general']
-        _list = wfproject.list_materials(namespace.scenarioname, settings_general['materialized_dir'])
-        pprint.pprint(sorted(_list, key=lambda x: x['updated_at'], reverse=True))
+        settings_general = self.settings['general']
+        _list = wfproject.list_materials(namespace.scenarioname)
+        pprint.pprint([
+            {
+                'id': o.id,
+                'status': o.status,
+                'created_at': o.created_at,
+                'updated_at': o.updated_at,
+            }
+            for o in sorted(_list, key=lambda x: x.updated_at, reverse=True)
+        ])
 
 
 class Run(CommandBase):
@@ -28,5 +36,5 @@ class Run(CommandBase):
         parser.add_argument('material_id', action='store')
 
     def execute(self, namespace):
-        seggings_general = self.settings['general']
+        settings_general = self.settings['general']
         wfscenario.run(namespace.material_id, settings_general)

@@ -1,4 +1,10 @@
 from wataru.workflow.scenario import Scenario
+from wataru.workflow.state import (
+    Scenario as ModelScenario,
+    Material as ModelMaterial,
+    session_scope,
+    get_session,
+)
 import os
 import json
 import shutil
@@ -10,6 +16,7 @@ import copy
 import re
 
 logger = getLogger(__name__)
+
 
 
 def ignore_for_copytree(d, files):
@@ -28,12 +35,12 @@ def materialize(scenario, scenario_path, mtpath):
     os.makedirs(mtpath, exist_ok=True)
 
     #本当はconfigがjson serializableになってるのが正しいがまだ出来ないので暫定でこうする
-    #scenario_id = utils.get_hash(json.dumps(scenario.config))
-    scenario_id = utils.get_hash(datetime.datetime.now().isoformat())
+    #material_id = utils.get_hash(json.dumps(scenario.config))
+    material_id = utils.get_hash(datetime.datetime.now().isoformat())
 
-    spath = os.path.join(mtpath, scenario_id)
+    spath = os.path.join(mtpath, material_id)
     if os.path.isfile(spath):
-        raise ValueError('{} already exists.'.format(scenario_id))
+        raise ValueError('{} already exists.'.format(material_id))
 
     try:
         # create and sync scenario_dir
@@ -41,24 +48,13 @@ def materialize(scenario, scenario_path, mtpath):
         logger.debug('scenario {} materialized done.'.format(spath))
 
         # update materialized meta
-        db_meta = {
-            'name2id': {},
-        }
-        meta_file = os.path.join(mtpath, 'meta.pickle')
-        if os.path.isfile(meta_file):
-            with open(meta_file, 'rb') as f:
-                db_meta = pickle.load(f)
-        if scenario.name not in db_meta['name2id']:
-            db_meta['name2id'][scenario.name] = []
-        _now = datetime.datetime.now()
-        db_meta['name2id'][scenario.name].append({
-            'id': scenario_id,
-            'created_at': _now,
-            'updated_at': _now,
-            'status': 'created',
-        })
-        with open(meta_file, 'wb') as f:
-            pickle.dump(db_meta, f)
+        rosess = get_session()
+        ms = rosess.query(ModelScenario).filter_by(name=scenario.name).first()
+        with session_scope() as session:
+            if ms is None:
+                session.add(ModelScenario(name=scenario.name))
+                ms = session.query(ModelScenario).filter_by(name=scenario.name).first()
+            session.add(ModelMaterial(scenario_id=ms.id, id=material_id))
         logger.debug('meta information materialized done.')
 
     except:
@@ -67,26 +63,16 @@ def materialize(scenario, scenario_path, mtpath):
         raise 
 
 
-def list_materials(scenario_name, mtpath):
-    meta_file = os.path.join(mtpath, 'meta.pickle')
-    if not os.path.isfile(meta_file):
+def list_materials(scenario_name):
+    rosess = get_session()
+    ms = rosess.query(ModelScenario).filter_by(name=scenario_name).first()
+    if ms is None:
         return []
     else:
-        with open(meta_file, 'rb') as f:
-            db_meta = pickle.load(f)
-        name2id = db_meta['name2id']
-        if scenario_name not in name2id:
-            return []
-        else:
-            return name2id[scenario_name]
+        return ms.materials
 
 
-def list_scenarios(mtpath):
-    meta_file = os.path.join(mtpath, 'meta.pickle')
-    if not os.path.isfile(meta_file):
-        return []
-    else:
-        with open(meta_file, 'rb') as f:
-            db_meta = pickle.load(f)
-        name2id = db_meta['name2id']
-        return list(name2id.keys())
+def list_scenarios():
+    rosess = get_session()
+    ms = rosess.query(ModelScenario).all()
+    return ms

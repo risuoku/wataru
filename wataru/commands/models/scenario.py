@@ -19,7 +19,7 @@ class Materialize(CommandBase):
 
     def execute(self, namespace):
         settings_general = self.settings['general']
-        smod = importlib.import_module('.'.join([settings['scenarios_module_name'], namespace.scenarioname, settings_general['scenario_entry_module_name']]))
+        smod = importlib.import_module('.'.join([settings_general['scenarios_module_name'], namespace.scenarioname, settings_general['scenario_entry_module_name']]))
         sobj = getattr(smod, settings_general['scenario_entry_function_name'])()
         wfproject.materialize(
             sobj,
@@ -34,5 +34,5 @@ class Ls(CommandBase):
 
     def execute(self, namespace):
         settings_general = self.settings['general']
-        _list = wfproject.list_scenarios(settings_general['materialized_dir'])
-        pprint.pprint(_list)
+        _list = wfproject.list_scenarios()
+        pprint.pprint([o.name for o in _list])

@@ -73,4 +73,7 @@ def session_scope():
 
 
 # import models
-from .models import Scenario
+from .models import (
+    Scenario,
+    Material,
+)
