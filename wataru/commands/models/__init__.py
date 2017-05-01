@@ -1,16 +1,20 @@
-from . import create
-from . import materialize
-from . import ls
-from . import run
+from . import project
+from . import scenario
+from . import material
 
 
 # attach models tree
+
 tree = {
-    'create': {
-        'scenario': create.Scenario(),
-        'project': create.Project(),
+    'project': {
+        'create': project.Create(),
     },
-    'materialize': materialize.Scenario(),
-    'ls': ls.Scenario(),
-    'run': run.Materialized(),
+    'scenario': {
+        'materialize': scenario.Materialize(),
+        'ls': scenario.Ls(),
+    },
+    'material': {
+        'ls': material.Ls(),
+        'run': material.Run(),
+    },
 }

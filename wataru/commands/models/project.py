@@ -1,18 +1,14 @@
 from wataru.commands.models.base import CommandBase
 from wataru.logging import getLogger
 import wataru.rules.models as rmodels
-import wataru.workflow.utils as wfutils
-import wataru.workflow.project as wfproject
 
-import yaml
 import os
 import sys
-import importlib
 
 logger = getLogger(__name__)
 
 
-class Project(CommandBase):
+class Create(CommandBase):
     def apply_arguments(self, parser):
         parser.add_argument('--name', action='store', dest='projectname'),
         parser.add_argument('--root-dir', action='store', dest='rootdir'),
@@ -52,11 +48,3 @@ class Project(CommandBase):
         mt = tm.config['meta']
         jobj = rmodels.SetupJupyter(mddir, project.abspath, mt.get('jupyter'))
         jobj.converge()
-
-
-class Scenario(CommandBase):
-    def apply_arguments(self, parser):
-        parser.add_argument('scenarioname', action='store')
-
-    def execute(self, namespace):
-        pass

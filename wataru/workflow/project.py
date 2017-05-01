@@ -67,7 +67,7 @@ def materialize(scenario, scenario_path, mtpath):
         raise 
 
 
-def list_materialized(scenario_name, mtpath):
+def list_materials(scenario_name, mtpath):
     meta_file = os.path.join(mtpath, 'meta.pickle')
     if not os.path.isfile(meta_file):
         return []
@@ -79,3 +79,14 @@ def list_materialized(scenario_name, mtpath):
             return []
         else:
             return name2id[scenario_name]
+
+
+def list_scenarios(mtpath):
+    meta_file = os.path.join(mtpath, 'meta.pickle')
+    if not os.path.isfile(meta_file):
+        return []
+    else:
+        with open(meta_file, 'rb') as f:
+            db_meta = pickle.load(f)
+        name2id = db_meta['name2id']
+        return list(name2id.keys())
