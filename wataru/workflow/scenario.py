@@ -74,14 +74,14 @@ def run(material_id, settings):
         if mm.count() > 0:
             raise Exception('{} already completed.'.format(material_id))
 
-        # run
         with session_scope() as session:
-            sobj.run()
-
             # update meta
             mm = session.query(ModelMaterial).filter_by(id=material_id).first()
             mm.updated_at = datetime.datetime.now()
             mm.status = ModelMaterial.Status.COMPLETED.value
+
+            # run
+            sobj.run()
         logger.debug('run {} done.'.format(material_id))
     else:
         raise Exception('material not found!')

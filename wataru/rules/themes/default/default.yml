@@ -30,6 +30,11 @@ body:
               type: 'file'
             - name: 'scenario.py'
               type: 'file'
+    - name: '.wataru'
+      type: 'directory'
+      children:
+        - name: 'storage'
+          type: 'directory'
 
 meta:
   jupyter:

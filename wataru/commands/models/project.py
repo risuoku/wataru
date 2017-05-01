@@ -15,6 +15,9 @@ class Create(CommandBase):
         parser.add_argument('--enable-virtualenv', action='store_true', default=False, dest='virtualenv_enabled'),
         parser.add_argument('--theme-dir', action='store', dest='themedir'),
 
+    def pre_execute(self, namespace):
+        pass
+
     def execute(self, namespace):
         # get theme
         from wataru.rules import themes

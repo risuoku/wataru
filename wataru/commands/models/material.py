@@ -38,3 +38,18 @@ class Run(CommandBase):
     def execute(self, namespace):
         settings_general = self.settings['general']
         wfscenario.run(namespace.material_id, settings_general)
+
+
+class Rm(CommandBase):
+    def apply_arguments(self, parser):
+        parser.add_argument('--config-path', action='store', dest='configpath', default='')
+        parser.add_argument('-t', action='store', dest='target', default=None)
+
+    def execute(self, namespace):
+        if namespace.target is None:
+            raise Exception('target_ids must be activated!')
+
+        target_ids = namespace.target.split(',')
+
+        settings_general = self.settings['general']
+        wfproject.remove_materials(target_ids, settings_general['materialized_dir'])

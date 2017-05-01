@@ -14,10 +14,13 @@ tree = {
     'scenario': {
         'materialize': scenario.Materialize(),
         'ls': scenario.Ls(),
+        'sync': scenario.Sync(),
+        'rm': scenario.Rm(),
     },
     'material': {
         'ls': material.Ls(),
         'run': material.Run(),
+        'rm': material.Rm(),
     },
     'db': {
         'setup': db.Setup(),
