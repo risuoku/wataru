@@ -25,6 +25,7 @@ class Scenario:
         self._providers = {}
         self._package_name = None
         self._material_location = None
+        self._provider_build_with_saved = False
 
     def build(self):
         self._name = self._config.get('name', __class__.__name__)
@@ -36,7 +37,7 @@ class Scenario:
 
         self._providers = dict([(pc['name'], providers[pc['name']](pc, self._loaded_data, self._package_name, self._material_location)) for pc in self._config['providers']])
         for name, p in self._providers.items():
-            p.build()
+            p.build(with_saved = self._provider_build_with_saved)
             logger.debug('provider {} build done.'.format(name))
 
         return self
@@ -66,7 +67,7 @@ class Scenario:
         setattr(self, '_' + key, value)
 
 
-def run(material_id, settings):
+def build(material_id, settings, need_not_completed = False):
     target_dir = os.path.join(settings['materialized_dir'], material_id)
     if os.path.isdir(target_dir):
         sys.path.append(settings['materialized_dir'])
@@ -76,22 +77,30 @@ def run(material_id, settings):
         # inject runtime attributes
         sobj.set('package_name', material_id)
         sobj.set('material_location', target_dir)
-        sobj.build()
 
         # check status
         rosess = get_session()
         mm = rosess.query(ModelMaterial).filter_by(status=ModelMaterial.Status.COMPLETED.value, id=material_id)
         if mm.count() > 0:
-            raise Exception('{} already completed.'.format(material_id))
+            # raise Exception
+            if need_not_completed:
+                raise Exception('{} already completed.'.format(material_id))
 
-        with session_scope() as session:
-            # update meta
-            mm = session.query(ModelMaterial).filter_by(id=material_id).first()
-            mm.updated_at = datetime.datetime.now()
-            mm.status = ModelMaterial.Status.COMPLETED.value
-
-            # run
-            sobj.run()
-        logger.debug('run {} done.'.format(material_id))
+            # already completed
+            sobj.set('provider_build_with_saved', True)
+        return sobj.build()
     else:
         raise Exception('material not found!')
+
+
+def run(material_id, settings):
+    sobj = build(material_id, settings, need_not_completed = True)
+    with session_scope() as session:
+        # update meta
+        mm = session.query(ModelMaterial).filter_by(id=material_id).first()
+        mm.updated_at = datetime.datetime.now()
+        mm.status = ModelMaterial.Status.COMPLETED.value
+
+        # run
+        sobj.run()
+    logger.debug('run {} done.'.format(material_id))

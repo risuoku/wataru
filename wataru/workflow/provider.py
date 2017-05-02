@@ -12,10 +12,10 @@ class Provider:
         self._material_location = material_location
         self._trainers = {}
 
-    def build(self):
+    def build(self, with_saved = False):
         return self
 
-    def run(self):
+    def run(self, with_save = True):
         for name, tr in self._trainers.items():
             logger.debug('trainer {} run start.'.format(name))
             logger.debug('trainer {} run done.'.format(name))
