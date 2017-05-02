@@ -5,9 +5,11 @@ logger = getLogger(__name__)
 
 
 class Provider:
-    def __init__(self, config, data):
+    def __init__(self, config, data, package_name, material_location):
         self._config = config
         self._data = data
+        self._package_name = package_name
+        self._material_location = material_location
         self._trainers = {}
 
     def build(self):
@@ -26,16 +28,3 @@ class Provider:
     @property
     def data(self):
         return self._data
-
-
-class ChainizerProvider(Provider):
-
-    def run(self):
-        for name, tr in self._trainers.items():
-            logger.debug('trainer {} run start.'.format(name))
-            tr.run()
-            logger.debug('trainer {} run done.'.format(name))
-        return self
-
-    def to_chainerdataset(self):
-        raise NotImplementedError()

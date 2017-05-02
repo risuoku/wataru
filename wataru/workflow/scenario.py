@@ -23,6 +23,8 @@ class Scenario:
         self._name = None
         self._loaded_data = None
         self._providers = {}
+        self._package_name = None
+        self._material_location = None
 
     def build(self):
         self._name = self._config.get('name', __class__.__name__)
@@ -32,7 +34,7 @@ class Scenario:
         if isinstance(providers, list):
             providers = dict([(p.__name__, p) for p in providers])
 
-        self._providers = dict([(pc['name'], providers[pc['name']](pc, self._loaded_data)) for pc in self._config['providers']])
+        self._providers = dict([(pc['name'], providers[pc['name']](pc, self._loaded_data, self._package_name, self._material_location)) for pc in self._config['providers']])
         for name, p in self._providers.items():
             p.build()
             logger.debug('provider {} build done.'.format(name))
@@ -60,6 +62,9 @@ class Scenario:
     def load(self):
         return None
 
+    def set(self, key, value):
+        setattr(self, '_' + key, value)
+
 
 def run(material_id, settings):
     target_dir = os.path.join(settings['materialized_dir'], material_id)
@@ -67,6 +72,11 @@ def run(material_id, settings):
         sys.path.append(settings['materialized_dir'])
         smod = importlib.import_module(material_id + '.' + settings['scenario_entry_module_name'])
         sobj = getattr(smod, settings['scenario_entry_function_name'])()
+
+        # inject runtime attributes
+        sobj.set('package_name', material_id)
+        sobj.set('material_location', target_dir)
+        sobj.build()
 
         # check status
         rosess = get_session()

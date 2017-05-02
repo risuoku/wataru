@@ -22,6 +22,8 @@ class Materialize(CommandBase):
         try:
             smod = importlib.import_module('.'.join([settings_general['scenarios_module_name'], namespace.scenarioname, settings_general['scenario_entry_module_name']]))
             sobj = getattr(smod, settings_general['scenario_entry_function_name'])()
+            sobj.set('package_name', '.'.join([settings_general['scenarios_module_name'], namespace.scenarioname]))
+            sobj.build()
         except:
             logger.error('instanize scenario object failed!')
             raise
