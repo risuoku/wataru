@@ -28,7 +28,7 @@ def setup(d):
         if d.get('uri') is None:
             self.engine = create_engine('sqlite:///:memory:', echo=True)
         else:
-            self.engine = create_engine(d['uri'], echo=True)
+            self.engine = create_engine(d['uri'])
 
         # build SessionCls
         self.SessionCls = sessionmaker(bind=self.engine)

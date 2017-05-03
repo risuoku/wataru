@@ -4,10 +4,6 @@ import re
 import os
 import sys
 import yaml
-from contextlib import contextmanager
-
-import wataru.workflow.state as wfstate
-import wataru.workflow.scenario as wfscenario
 
 
 class ConsoleCommand:
@@ -82,17 +78,11 @@ def get_setttings_from_configpath(configpath):
     }
 
 
-@contextmanager
-def material_scope(material_id, configpath=''):
-    # prepare settings
-    settings = get_setttings_from_configpath(os.path.abspath(configpath))
+class param:
+    def __init__(self, *args, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
 
-    # setup PYTHONPATH
-    if settings['general']['project_base_path'] not in sys.path:
-        sys.path.append(settings['general']['project_base_path'])
-    sys.path.append(settings['general']['materialized_dir'])
-
-    # setup db
-    wfstate.setup(settings['db'])
-
-    yield wfscenario.build(material_id, settings['general'], need_not_completed = False)
+    @property
+    def item(self):
+        return self._args, self._kwargs

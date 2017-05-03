@@ -1,5 +1,12 @@
-from wataru.workflow.provider import Provider
+from wataru.workflow.provider import (
+    Provider,
+    provider_generator,
+    default_name_function,
+)
 from wataru.logging import getLogger
+import collections
+import importlib
+import os
 
 logger = getLogger(__name__)
 
@@ -8,8 +15,6 @@ logger = getLogger(__name__)
 
 try:
     import chainer
-    import importlib
-    import os
     class ChainerProvider(Provider):
         def get_model_name(self, tr_name):
             return '{}_{}'.format(self.__class__.__name__, tr_name)
@@ -38,5 +43,14 @@ try:
         def to_chainerdataset(self):
             raise NotImplementedError()
 
+    
+    def chainer_provider_generator(iterator, f, name_function = default_name_function):
+        if not isinstance(iterator, collections.Iterable):
+            raise TypeError('`iterator` must be iterable.')
+        if not f.__name__ == 'to_chainerdataset':
+            raise ValueError('invalid function name .. {}'.format(f.__name__))
+        chainer_iterator = [{'to_chainerdataset': ite} for ite in iterator]
+        return provider_generator(chainer_iterator, [f], name_function = name_function, parent_class = ChainerProvider)
+
 except ImportError:
-    pass
+    logger.debug('import ChainerProvider failed!')

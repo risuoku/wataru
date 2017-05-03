@@ -5,18 +5,23 @@ from wataru.workflow.state import (
     session_scope,
     get_session,
 )
+from wataru.workflow.provider import Provider
+
+import wataru.workflow.state as wfstate
+from contextlib import contextmanager
 
 import os
 import sys
 import importlib
 import pickle
 import datetime
+import collections
 
 logger = getLogger(__name__)
 
 
 class Scenario:
-    provider_cls = {}
+    provider_cls = []
 
     def __init__(self, config):
         self._config = config
@@ -31,10 +36,24 @@ class Scenario:
         self._name = self._config.get('name', __class__.__name__)
         self._loaded_data = self.load()
 
-        providers = self.__class__.provider_cls
-        if isinstance(providers, list):
-            providers = dict([(p.__name__, p) for p in providers])
-
+        raw_providers = self.__class__.provider_cls
+        providers = collections.OrderedDict()
+        if not isinstance(raw_providers, list):
+            raise TypeError('`providers` must be list.')
+        for rawp in raw_providers:
+            if isinstance(rawp, collections.Iterable):
+                # for generator
+                for a in rawp:
+                    if not issubclass(a, Provider):
+                        raise TypeError('invalid type!')
+                    providers[a.__name__] = a
+            elif issubclass(rawp, Provider):
+                # just provider
+                providers[rawp.__name__] = rawp
+            else:
+                raise TypeError('invalid type!')
+        
+        logger.debug('registered providers .. {}'.format(', '.join([k for k, v in providers.items()])))
         self._providers = dict([(pc['name'], providers[pc['name']](pc, self._loaded_data, self._package_name, self._material_location)) for pc in self._config['providers']])
         for name, p in self._providers.items():
             p.build(with_saved = self._provider_build_with_saved)
@@ -104,3 +123,19 @@ def run(material_id, settings):
         # run
         sobj.run()
     logger.debug('run {} done.'.format(material_id))
+
+
+@contextmanager
+def material_scope(material_id, configpath=''):
+    # prepare settings
+    settings = get_setttings_from_configpath(os.path.abspath(configpath))
+
+    # setup PYTHONPATH
+    if settings['general']['project_base_path'] not in sys.path:
+        sys.path.append(settings['general']['project_base_path'])
+    sys.path.append(settings['general']['materialized_dir'])
+
+    # setup db
+    wfstate.setup(settings['db'])
+
+    yield build(material_id, settings['general'], need_not_completed = False)
