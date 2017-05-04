@@ -117,3 +117,12 @@ def provider_generator(iterator, f_list, parent_class = Provider, name_function 
             (parent_class,),
             attrs
         )
+
+
+def trainer_factory_wrapper(f):
+    def trainer_factory(*args):
+        for a in args:
+            if not isinstance(a, wfutils.param):
+                raise TypeError('`a` must be param instance.')
+        return [f(*arg.item[0], **arg.item[1]) for arg in args]
+    return trainer_factory
