@@ -32,14 +32,7 @@ class Provider:
         if not isinstance(raw_trainer_factories, list):
             raise TypeError('`raw_trainer_factories` must be list.')
         for rawtf in raw_trainer_factories:
-            if isinstance(rawtf, collections.Iterable):
-                # for generator
-                for a in rawtf:
-                    if inspect.isfunction(a):
-                        raise TypeError('invalid type!')
-                    tr = a(self.transformed_data)
-                    self._trainers[self.get_model_name(getattr(tr, 'name', tr.__class__.__name__))] = tr
-            elif inspect.isfunction(rawtf):
+            if inspect.isfunction(rawtf):
                 # just provider
                 tr = rawtf(self.transformed_data)
                 self._trainers[self.get_model_name(getattr(tr, 'name', tr.__class__.__name__))] = tr
