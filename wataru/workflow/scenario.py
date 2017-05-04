@@ -30,7 +30,7 @@ class Scenario:
         self._providers = {}
         self._package_name = None
         self._material_location = None
-        self._provider_build_with_saved = False
+        self._material_status_completed = False
 
     def build(self):
         self._name = self._config.get('name', __class__.__name__)
@@ -54,9 +54,16 @@ class Scenario:
                 raise TypeError('invalid type!')
         
         logger.debug('registered providers .. {}'.format(', '.join([k for k, v in providers.items()])))
-        self._providers = dict([(pc['name'], providers[pc['name']](pc, self._loaded_data, self._package_name, self._material_location)) for pc in self._config['providers']])
+        #self._providers = dict([
+        #    (pc['name'], providers[pc['name']](pc, self._loaded_data, self._package_name, self._material_location, self._material_status_completed))
+        #    for pc in self._config['providers']
+        #])
+        self._providers = dict([
+            (pname, p(self._loaded_data, self._package_name, self._material_location, self._material_status_completed))
+            for pname, p in providers.items()
+        ])
         for name, p in self._providers.items():
-            p.build(with_saved = self._provider_build_with_saved)
+            p.build()
             logger.debug('provider {} build done.'.format(name))
 
         return self
@@ -106,7 +113,7 @@ def build(material_id, settings, need_not_completed = False):
                 raise Exception('{} already completed.'.format(material_id))
 
             # already completed
-            sobj.set('provider_build_with_saved', True)
+            sobj.set('material_status_completed', True)
         return sobj.build()
     else:
         raise Exception('material not found!')
