@@ -22,7 +22,7 @@ logger = getLogger(__name__)
 class Scenario:
     provider_cls = []
 
-    def __init__(self, config):
+    def __init__(self, config = None):
         self._config = config
         self._name = None
         self._loaded_data = None
@@ -33,7 +33,7 @@ class Scenario:
         self._material_status_completed = False
 
     def build(self):
-        self._name = self._config.get('name', __class__.__name__)
+        self._name = self.__class__.__name__
         self._loaded_data = self.load()
 
         raw_providers = self.__class__.provider_cls
@@ -54,10 +54,6 @@ class Scenario:
                 raise TypeError('invalid type!')
         
         logger.debug('registered providers .. {}'.format(', '.join([k for k, v in providers.items()])))
-        #self._providers = dict([
-        #    (pc['name'], providers[pc['name']](pc, self._loaded_data, self._package_name, self._material_location, self._material_status_completed))
-        #    for pc in self._config['providers']
-        #])
         self._providers = dict([
             (pname, p(self._loaded_data, self._package_name, self._material_location, self._material_status_completed))
             for pname, p in providers.items()

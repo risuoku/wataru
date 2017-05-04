@@ -72,7 +72,7 @@ class Inspect(CommandBase):
             'material_id': namespace.material_id,
             'material_status': mat.material_status,
             'scenario': {
-                'name': mat.__class__.__name__,
+                'name': mat.name,
                 'providers': [
                     {
                         'name': pname,

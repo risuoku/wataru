@@ -22,8 +22,6 @@ body:
         - name: 'sample'
           type: 'directory'
           children:
-            - name: 'config.py'
-              type: 'file'
             - name: 'entry.py'
               type: 'file'
             - name: 'provider.py'

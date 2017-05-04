@@ -2,4 +2,5 @@ from wataru.workflow.provider import Provider
 
 
 class SampleProvider(Provider):
-    pass
+    def transform(self):
+        pass

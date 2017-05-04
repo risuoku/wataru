@@ -13,5 +13,4 @@ class SampleScenario(Scenario):
 
 
 def create():
-    from .config import config
-    return SampleScenario(config).build()
+    return SampleScenario().build()

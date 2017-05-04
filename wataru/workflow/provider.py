@@ -9,6 +9,7 @@ logger = getLogger(__name__)
 
 class Provider:
     trainer_factory = []
+    item = {}
 
     def __init__(self, data, package_name, material_location, material_status_completed):
         self._data = data
