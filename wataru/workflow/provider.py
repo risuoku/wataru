@@ -98,13 +98,14 @@ def provider_generator(iterator, f_list, parent_class = Provider, name_function 
             if fname not in f_names:
                 raise ValueError('{} not in fnames'.format(fname))
             args, kwargs = p.item
-            d = collections.OrderedDict([(idx, a) for idx, a in enumerate(args)])
-            for k, v in sorted(kwargs.items(), key=lambda x: x[0]):
-                d[k] = v
             if fname in RESERVED_ATTR_NAMES:
                 raise ValueError('{} is reserved name and not allowed to use.'.format(fname))
             attrs[fname] = (f_dict[fname])(*args, **kwargs)
             attrs['item'] = p.item
+            if fname == 'transform':
+                d = collections.OrderedDict([(idx, a) for idx, a in enumerate(args)])
+                for k, v in sorted(kwargs.items(), key=lambda x: x[0]):
+                    d[k] = v
         yield type(
             name_function(d),
             (parent_class,),
