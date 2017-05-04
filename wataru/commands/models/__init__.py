@@ -21,6 +21,7 @@ tree = {
         'ls': material.Ls(),
         'run': material.Run(),
         'rm': material.Rm(),
+        'inspect': material.Inspect(),
     },
     'db': {
         'setup': db.Setup(),

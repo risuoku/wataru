@@ -92,6 +92,8 @@ def provider_generator(iterator, f_list, parent_class = Provider, name_function 
         if not isinstance(param_dict, dict):
             raise TypeError('`param_dict` must be dict.')
         attrs = {}
+        attrs_item_dict = {}
+        d = None
         for fname, p in param_dict.items():
             if not isinstance(p, wfutils.param):
                 raise TypeError('invalid parameter type!')
@@ -101,11 +103,14 @@ def provider_generator(iterator, f_list, parent_class = Provider, name_function 
             if fname in RESERVED_ATTR_NAMES:
                 raise ValueError('{} is reserved name and not allowed to use.'.format(fname))
             attrs[fname] = (f_dict[fname])(*args, **kwargs)
-            attrs['item'] = p.item
+            attrs_item_dict[fname] = p.item
             if fname == 'transform':
                 d = collections.OrderedDict([(idx, a) for idx, a in enumerate(args)])
                 for k, v in sorted(kwargs.items(), key=lambda x: x[0]):
                     d[k] = v
+        attrs['item'] = attrs_item_dict
+        if d is None:
+            raise ValueError('`d` must be set!')
         yield type(
             name_function(d),
             (parent_class,),

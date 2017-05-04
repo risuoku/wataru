@@ -2,6 +2,7 @@ from wataru.commands.models.base import CommandBase
 from wataru.logging import getLogger
 import wataru.workflow.project as wfproject
 import wataru.workflow.scenario as wfscenario
+import wataru.workflow.inspector as wfinspector
 
 import os
 import sys
@@ -53,3 +54,39 @@ class Rm(CommandBase):
 
         settings_general = self.settings['general']
         wfproject.remove_materials(target_ids, settings_general['materialized_dir'])
+
+
+class Inspect(CommandBase):
+    def apply_arguments(self, parser):
+        parser.add_argument('--config-path', action='store', dest='configpath', default='')
+        parser.add_argument('material_id', action='store')
+
+    def pre_execute(self, namespace):
+        pass
+
+    def execute(self, namespace):
+        mat = wfinspector.get_material(namespace.material_id, namespace.configpath)
+
+        # scenarios
+        result = {
+            'material_id': namespace.material_id,
+            'material_status': mat.material_status,
+            'scenario': {
+                'name': mat.__class__.__name__,
+                'providers': [
+                    {
+                        'name': pname,
+                        'items': p.item,
+                        'trainers': [
+                            {
+                                'name': tr_name,
+                            }
+                            for tr_name, tr in p.trainers.items()
+                        ]
+                    }
+                    for pname, p in mat.providers.items()
+                ]
+            }
+        }
+        from pprint import pprint
+        pprint(result)

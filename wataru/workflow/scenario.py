@@ -8,7 +8,6 @@ from wataru.workflow.state import (
 from wataru.workflow.provider import Provider
 
 import wataru.workflow.state as wfstate
-from contextlib import contextmanager
 
 import os
 import sys
@@ -30,6 +29,7 @@ class Scenario:
         self._providers = {}
         self._package_name = None
         self._material_location = None
+        self._material_status = None
         self._material_status_completed = False
 
     def build(self):
@@ -92,6 +92,9 @@ class Scenario:
     def set(self, key, value):
         setattr(self, '_' + key, value)
 
+    def __getattr__(self, name):
+        return getattr(self, '_' + name)
+
 
 def build(material_id, settings, need_not_completed = False):
     target_dir = os.path.join(settings['materialized_dir'], material_id)
@@ -106,14 +109,19 @@ def build(material_id, settings, need_not_completed = False):
 
         # check status
         rosess = get_session()
-        mm = rosess.query(ModelMaterial).filter_by(status=ModelMaterial.Status.COMPLETED.value, id=material_id)
-        if mm.count() > 0:
+        mm_all = rosess.query(ModelMaterial).filter_by(id=material_id)
+        if mm_all.count() > 0:
+            mm = mm_all[0]
+
             # raise Exception
-            if need_not_completed:
+            if need_not_completed and mm.status == ModelMaterial.Status.COMPLETED.value:
                 raise Exception('{} already completed.'.format(material_id))
 
-            # already completed
-            sobj.set('material_status_completed', True)
+            # set status
+            sobj.set('material_status', mm.status)
+            sobj.set('material_status_completed', mm.status == ModelMaterial.Status.COMPLETED.value)
+        else:
+            raise Exception('unexpected error! .. material management system may be broken.')
         return sobj.build()
     else:
         raise Exception('material not found!')
@@ -130,19 +138,3 @@ def run(material_id, settings):
         # run
         sobj.run()
     logger.debug('run {} done.'.format(material_id))
-
-
-@contextmanager
-def material_scope(material_id, configpath=''):
-    # prepare settings
-    settings = get_setttings_from_configpath(os.path.abspath(configpath))
-
-    # setup PYTHONPATH
-    if settings['general']['project_base_path'] not in sys.path:
-        sys.path.append(settings['general']['project_base_path'])
-    sys.path.append(settings['general']['materialized_dir'])
-
-    # setup db
-    wfstate.setup(settings['db'])
-
-    yield build(material_id, settings['general'], need_not_completed = False)
