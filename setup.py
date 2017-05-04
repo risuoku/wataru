@@ -23,5 +23,6 @@ setup (
         'jupyter',
         'PyYAML',
         'Jinja2',
+        'SQLAlchemy',
     ],
 )
