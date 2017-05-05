@@ -86,3 +86,6 @@ class param:
     @property
     def item(self):
         return self._args, self._kwargs
+
+    def __repr__(self):
+        return str(self.item)
