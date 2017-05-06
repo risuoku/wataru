@@ -66,6 +66,7 @@ class Scenario:
         return self
 
     def run(self):
+        # run providers
         for name, p in self._providers.items():
             p.run()
             logger.debug('provider {} run done.'.format(name))
@@ -127,6 +128,12 @@ def build(material_id, settings, need_not_completed = False):
 def run(material_id_or_tag, settings):
     material_id = wfutils.get_material_id(material_id_or_tag)
     sobj = build(material_id, settings, need_not_completed = True)
+
+    with session_scope() as session:
+        # notify processing
+        mm = session.query(ModelMaterial).filter_by(id=material_id).first()
+        mm.status = ModelMaterial.Status.PROCESSING.value
+
     with session_scope() as session:
         # update meta
         mm = session.query(ModelMaterial).filter_by(id=material_id).first()

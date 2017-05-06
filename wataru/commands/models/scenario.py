@@ -2,6 +2,7 @@ from wataru.commands.models.base import CommandBase
 from wataru.logging import getLogger
 import wataru.workflow.project as wfproject
 import wataru.workflow.state as wfstate
+import wataru.workflow.scenario as wfscenario
 
 import yaml
 import os
@@ -27,11 +28,27 @@ class Materialize(CommandBase):
         except:
             logger.error('instanize scenario object failed!')
             raise
-        wfproject.materialize(
+        material_id = wfproject.materialize(
             namespace.scenarioname,
             os.path.join(settings_general['project_base_path'], settings_general['scenarios_module_name'], namespace.scenarioname),
             settings_general['materialized_dir']
         )
+        logger.info('material_id: {}'.format(material_id))
+        self.material_id = material_id
+
+
+class Run(CommandBase):
+    def apply_arguments(self, parser):
+        parser.add_argument('--config-path', action='store', dest='configpath', default='')
+        parser.add_argument('scenarioname', action='store')
+
+    def execute(self, namespace):
+        cmd = Materialize()
+        cmd.settings = self.settings
+        cmd.execute(namespace)
+
+        settings_general = self.settings['general']
+        wfscenario.run(cmd.material_id, settings_general)
 
 
 class Ls(CommandBase):

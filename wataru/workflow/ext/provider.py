@@ -32,6 +32,12 @@ try:
             tr_names = list(self.trainers.keys())
             for tr_name in tr_names:
                 trainer = self.trainers[tr_name]
+
+                if self._material_location is not None:
+                    if os.path.isfile(os.path.join(self._material_location, tr_name + '.npz')):
+                        logger.debug('{} already processed .. skip'.format(tr_name))
+                        continue
+
                 logger.debug('trainer {} run start.'.format(tr_name))
                 trainer.run()
                 if self._material_location is not None:

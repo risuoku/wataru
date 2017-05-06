@@ -70,6 +70,7 @@ def materialize(scenario_name, scenario_path, mtpath):
             # create and sync scenario_dir
             shutil.copytree(scenario_path, spath, ignore=ignore_for_copytree)
             logger.debug('scenario {} materialized done.'.format(spath))
+        return material_id
 
     except:
         shutil.rmtree(spath)

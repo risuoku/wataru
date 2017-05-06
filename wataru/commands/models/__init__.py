@@ -14,6 +14,7 @@ tree = {
     },
     'scenario': {
         'materialize': scenario.Materialize(),
+        'run': scenario.Run(),
         'ls': scenario.Ls(),
         'sync': scenario.Sync(),
         'rm': scenario.Rm(),

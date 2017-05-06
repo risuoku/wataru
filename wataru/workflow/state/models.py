@@ -27,6 +27,7 @@ class Scenario(Base):
 class Material(Base):
     class Status(enum.Enum):
         CREATED = 'created'
+        PROCESSING = 'processing'
         COMPLETED = 'completed'
 
     __tablename__ = 'materials'
