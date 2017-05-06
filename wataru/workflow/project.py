@@ -49,8 +49,6 @@ def create_scenarios(base_path, scenario_module_name):
 def materialize(scenario_name, scenario_path, mtpath):
     os.makedirs(mtpath, exist_ok=True)
 
-    #本当はconfigがjson serializableになってるのが正しいがまだ出来ないので暫定でこうする
-    #material_id = utils.get_hash(json.dumps(scenario.config))
     material_id = utils.get_hash(datetime.datetime.now().isoformat())
 
     spath = os.path.join(mtpath, material_id)

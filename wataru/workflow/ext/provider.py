@@ -29,11 +29,14 @@ try:
                             logger.warn('load model failed! .. model not found.')
         
         def run(self):
-            for tr_name, trainer in self.trainers.items():
+            tr_names = list(self.trainers.keys())
+            for tr_name in tr_names:
+                trainer = self.trainers[tr_name]
                 logger.debug('trainer {} run start.'.format(tr_name))
                 trainer.run()
                 if self._material_location is not None:
                     chainer.serializers.save_npz(os.path.join(self._material_location, tr_name + '.npz'), trainer)
+                del self.trainers[tr_name] # GPUメモリの解放
                 logger.debug('trainer {} run done.'.format(tr_name))
             return self
 
