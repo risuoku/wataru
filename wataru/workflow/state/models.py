@@ -32,6 +32,7 @@ class Material(Base):
     __tablename__ = 'materials'
 
     id = Column(String, primary_key=True, autoincrement=False)
+    tag = Column(String, unique=True, nullable=False)
     scenario_id = Column(Integer, ForeignKey('scenarios.id'), nullable=False)
     scenario = relationship('Scenario', back_populates='materials')
     status = Column(String, default=Status.CREATED.value)

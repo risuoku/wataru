@@ -89,3 +89,23 @@ class param:
 
     def __repr__(self):
         return str(self.item)
+
+
+def get_material_id(material_ids_or_tags):
+    from .state import Material, get_session
+    rosess = get_session()
+    if isinstance(material_ids_or_tags, list):
+        targets_by_tag = rosess.query(Material).filter(Material.tag.in_(material_ids_or_tags))
+        targets_by_id = rosess.query(Material).filter(Material.id.in_(material_ids_or_tags))
+        return list(set([t.id for t in targets_by_tag]) | set([t.id for t in targets_by_id]))
+    elif isinstance(material_ids_or_tags, str):
+        target_by_tag = rosess.query(Material).filter_by(tag=material_ids_or_tags).first()
+        target_by_id = rosess.query(Material).filter_by(id=material_ids_or_tags).first()
+        if target_by_tag is None and target_by_id is None:
+            raise ValueError('target material not found.')
+        if target_by_tag is not None and target_by_id is not None and target_by_tag.id !=  target_by_id.id:
+            raise Exception('unknown status.')
+        target = target_by_tag or target_by_id
+        return target.id
+    else:
+        raise TypeError('invalid type. {}'.format(type(material_ids_or_tags)))

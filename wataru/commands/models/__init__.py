@@ -3,6 +3,7 @@ from . import scenario
 from . import material
 from . import db
 from . import console
+from . import tag
 
 
 # attach models tree
@@ -27,4 +28,5 @@ tree = {
         'setup': db.Setup(),
     },
     'console': console.Console(),
+    'tag': tag.Tag(),
 }

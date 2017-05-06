@@ -3,6 +3,7 @@ from wataru.logging import getLogger
 import wataru.workflow.project as wfproject
 import wataru.workflow.scenario as wfscenario
 import wataru.workflow.inspector as wfinspector
+import wataru.workflow.utils as wfutils
 
 import os
 import sys
@@ -23,6 +24,7 @@ class Ls(CommandBase):
         pprint.pprint([
             {
                 'id': o.id,
+                'tag': o.tag,
                 'status': o.status,
                 'created_at': o.created_at,
                 'updated_at': o.updated_at,
@@ -66,10 +68,11 @@ class Inspect(CommandBase):
 
     def execute(self, namespace):
         mat = wfinspector.get_material(namespace.material_id, namespace.configpath)
+        material_id = wfutils.get_material_id(namespace.material_id)
 
         # scenarios
         result = {
-            'material_id': namespace.material_id,
+            'material_id': material_id,
             'material_status': mat.material_status,
             'scenario': {
                 'name': mat.name,

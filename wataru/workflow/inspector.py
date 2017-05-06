@@ -6,7 +6,7 @@ import os
 import sys
 
 
-def get_material(material_id, configpath=''):
+def get_material(material_id_or_tag, configpath=''):
     # prepare settings
     settings = wfutils.get_setttings_from_configpath(os.path.abspath(configpath))
 
@@ -17,5 +17,7 @@ def get_material(material_id, configpath=''):
 
     # setup db
     wfstate.setup(settings['db'])
+
+    material_id = wfutils.get_material_id(material_id_or_tag)
 
     return wfscenario.build(material_id, settings['general'], need_not_completed = False)

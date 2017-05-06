@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from contextlib import contextmanager
 import sys
+import os
 
 
 # prepare Base class
@@ -25,10 +26,11 @@ def setup(d):
 
     try:
         # build engine
+        _echo_true = os.environ.get('DEBUG') is not None
         if d.get('uri') is None:
-            self.engine = create_engine('sqlite:///:memory:', echo=True)
+            self.engine = create_engine('sqlite:///:memory:', echo=_echo_true)
         else:
-            self.engine = create_engine(d['uri'])
+            self.engine = create_engine(d['uri'], echo=_echo_true)
 
         # build SessionCls
         self.SessionCls = sessionmaker(bind=self.engine)

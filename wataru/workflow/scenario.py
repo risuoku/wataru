@@ -8,6 +8,7 @@ from wataru.workflow.state import (
 from wataru.workflow.provider import Provider
 
 import wataru.workflow.state as wfstate
+import wataru.workflow.utils as wfutils
 
 import os
 import sys
@@ -123,7 +124,8 @@ def build(material_id, settings, need_not_completed = False):
         raise Exception('material not found!')
 
 
-def run(material_id, settings):
+def run(material_id_or_tag, settings):
+    material_id = wfutils.get_material_id(material_id_or_tag)
     sobj = build(material_id, settings, need_not_completed = True)
     with session_scope() as session:
         # update meta

@@ -10,6 +10,7 @@ import json
 import shutil
 import itertools
 import wataru.utils as utils
+import wataru.workflow.utils as wfutils
 from wataru.logging import getLogger
 import datetime
 import pickle
@@ -23,7 +24,7 @@ def ignore_for_copytree(d, files):
     def _ignore_pattern(s):
         return (
             re.search('__pycache__', s) is not None or
-            re.search('$.*\.pyc^', s) is not None
+            re.search('^.*\.pyc$', s) is not None
         )
     ignore_files = [fn for fn in files if _ignore_pattern(fn)]
     return ignore_files
@@ -63,7 +64,7 @@ def materialize(scenario_name, scenario_path, mtpath):
             if ms is None:
                 session.add(ModelScenario(name=scenario_name))
                 ms = session.query(ModelScenario).filter_by(name=scenario_name).first()
-            session.add(ModelMaterial(scenario_id=ms.id, id=material_id))
+            session.add(ModelMaterial(scenario_id=ms.id, id=material_id, tag=material_id))
             logger.debug('meta information materialized done.')
 
             # create and sync scenario_dir
@@ -89,7 +90,8 @@ def remove_scenarios(scenario_names, mtpath):
         session.query(ModelScenario).filter(ModelScenario.name.in_(scenario_names)).delete(synchronize_session='fetch')
 
 
-def remove_materials(material_ids, mtpath):
+def remove_materials(material_ids_or_tags, mtpath):
+    material_ids = wfutils.get_material_id(material_ids_or_tags)
     material_paths = [os.path.join(mtpath, mid) for mid in material_ids]
 
     try:
