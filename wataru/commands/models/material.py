@@ -36,11 +36,12 @@ class Ls(CommandBase):
 class Run(CommandBase):
     def apply_arguments(self, parser):
         parser.add_argument('--config-path', action='store', dest='configpath', default='')
+        parser.add_argument('--allow-completed', action='store_true', dest='allowcompleted', default=False)
         parser.add_argument('material_id', action='store')
 
     def execute(self, namespace):
         settings_general = self.settings['general']
-        wfscenario.run(namespace.material_id, settings_general)
+        wfscenario.run(namespace.material_id, settings_general, need_not_completed = not namespace.allowcompleted)
 
 
 class Rm(CommandBase):

@@ -23,10 +23,10 @@ try:
                     model_path = os.path.join(self._material_location, tr_name + '.npz')
                     if os.path.isfile(model_path) and self._material_status_completed:
                         chainer.serializers.load_npz(model_path, self.trainers[tr_name])
-                        logger.debug('load from saved.')
+                        logger.debug('{} .. load from saved.'.format(tr_name))
                     else:
                         if self._material_status_completed:
-                            logger.warn('load model failed! .. model not found.')
+                            logger.warn('{} .. load model failed! .. model not found.'.format(tr_name))
         
         def run(self):
             tr_names = list(self.trainers.keys())

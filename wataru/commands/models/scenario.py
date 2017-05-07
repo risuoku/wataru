@@ -40,6 +40,7 @@ class Materialize(CommandBase):
 class Run(CommandBase):
     def apply_arguments(self, parser):
         parser.add_argument('--config-path', action='store', dest='configpath', default='')
+        parser.add_argument('--allow-completed', action='store_true', dest='allowcompleted', default=False)
         parser.add_argument('scenarioname', action='store')
 
     def execute(self, namespace):
@@ -48,7 +49,7 @@ class Run(CommandBase):
         cmd.execute(namespace)
 
         settings_general = self.settings['general']
-        wfscenario.run(cmd.material_id, settings_general)
+        wfscenario.run(cmd.material_id, settings_general, need_not_completed = not namespace.allowcompleted)
 
 
 class Ls(CommandBase):

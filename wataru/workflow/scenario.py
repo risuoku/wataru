@@ -125,9 +125,9 @@ def build(material_id, settings, need_not_completed = False):
         raise Exception('material not found!')
 
 
-def run(material_id_or_tag, settings):
+def run(material_id_or_tag, settings, need_not_completed = True):
     material_id = wfutils.get_material_id(material_id_or_tag)
-    sobj = build(material_id, settings, need_not_completed = True)
+    sobj = build(material_id, settings, need_not_completed = need_not_completed)
 
     with session_scope() as session:
         # notify processing
