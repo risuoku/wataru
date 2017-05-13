@@ -74,6 +74,15 @@ def default_name_function(d):
     return 'Provider__' + '_'.join(['{}{}'.format(k, v) for k, v in d.items()])
 
 
+def trainer_factory_wrapper(f):
+    def trainer_factory(*args):
+        for a in args:
+            if not isinstance(a, wfutils.param):
+                raise TypeError('`a` must be param instance.')
+        return [f(*arg.item[0], **arg.item[1]) for arg in args]
+    return trainer_factory
+
+
 RESERVED_ATTR_NAMES = ['item']
 def provider_generator(iterator, f_list, parent_class = Provider, name_function = default_name_function):
     if not isinstance(iterator, collections.Iterable):
@@ -93,14 +102,24 @@ def provider_generator(iterator, f_list, parent_class = Provider, name_function 
                 raise TypeError('invalid parameter type!')
             if fname not in f_names:
                 raise ValueError('{} not in fnames'.format(fname))
+
             args, kwargs = p.item
             if fname in RESERVED_ATTR_NAMES:
                 raise ValueError('{} is reserved name and not allowed to use.'.format(fname))
-            attrs[fname] = (f_dict[fname])(*args, **kwargs)
+            
+            # trainer_factory implicit conversion
+            # ugly hack!
+            if fname == 'trainer_factory':
+                attrs[fname] = (trainer_factory_wrapper(f_dict[fname]))(*args, **kwargs)
+            else:
+                attrs[fname] = (f_dict[fname])(*args, **kwargs)
+
             attrs_item_dict[fname] = p.item
+
+            # transform 
             if fname == 'transform':
                 d = collections.OrderedDict([(idx, a) for idx, a in enumerate(args)])
-                for k, v in sorted(kwargs.items(), key=lambda x: x[0]):
+                for k, v in kwargs.items():
                     d[k] = v
         attrs['item'] = attrs_item_dict
         if d is None:
@@ -110,12 +129,3 @@ def provider_generator(iterator, f_list, parent_class = Provider, name_function 
             (parent_class,),
             attrs
         )
-
-
-def trainer_factory_wrapper(f):
-    def trainer_factory(*args):
-        for a in args:
-            if not isinstance(a, wfutils.param):
-                raise TypeError('`a` must be param instance.')
-        return [f(*arg.item[0], **arg.item[1]) for arg in args]
-    return trainer_factory

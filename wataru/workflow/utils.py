@@ -4,6 +4,7 @@ import re
 import os
 import sys
 import yaml
+import collections
 
 
 class ConsoleCommand:
@@ -85,7 +86,8 @@ class param:
 
     @property
     def item(self):
-        return self._args, self._kwargs
+        sorted_kwargs = collections.OrderedDict([(k, v) for k, v in sorted(self._kwargs.items(), key=lambda x: x[0])])
+        return self._args, sorted_kwargs
 
     def __repr__(self):
         return str(self.item)

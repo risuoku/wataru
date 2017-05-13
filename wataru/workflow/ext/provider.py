@@ -3,6 +3,7 @@ from wataru.workflow.provider import (
     provider_generator,
     default_name_function,
 )
+from wataru.utils import get_hash
 from wataru.logging import getLogger
 import collections
 import importlib
@@ -12,6 +13,9 @@ import inspect
 logger = getLogger(__name__)
 
 
+def get_model_filepath_name(mlocation, tr_name):
+    return os.path.join(mlocation, get_hash(tr_name) + '.npz')
+
 # for ChainerProvider
 
 try:
@@ -20,7 +24,7 @@ try:
         def build_finished(self):
             for tr_name, tr in self.trainers.items():
                 if self._material_location is not None:
-                    model_path = os.path.join(self._material_location, tr_name + '.npz')
+                    model_path = get_model_filepath_name(self._material_location, tr_name)
                     if os.path.isfile(model_path) and self._material_status_completed:
                         chainer.serializers.load_npz(model_path, self.trainers[tr_name])
                         logger.debug('{} .. load from saved.'.format(tr_name))
@@ -33,15 +37,17 @@ try:
             for tr_name in tr_names:
                 trainer = self.trainers[tr_name]
 
+                model_path = None
                 if self._material_location is not None:
-                    if os.path.isfile(os.path.join(self._material_location, tr_name + '.npz')):
+                    model_path = get_model_filepath_name(self._material_location, tr_name)
+                    if os.path.isfile(model_path):
                         logger.debug('{} already processed .. skip'.format(tr_name))
                         continue
 
                 logger.debug('trainer {} run start.'.format(tr_name))
                 trainer.run()
-                if self._material_location is not None:
-                    chainer.serializers.save_npz(os.path.join(self._material_location, tr_name + '.npz'), trainer)
+                if self._material_location is not None and model_path is not None:
+                    chainer.serializers.save_npz(model_path, trainer)
                 del self.trainers[tr_name] # GPUメモリの解放
                 logger.debug('trainer {} run done.'.format(tr_name))
             return self
