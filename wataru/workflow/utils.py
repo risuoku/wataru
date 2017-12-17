@@ -125,10 +125,12 @@ def _convert_param(p):
     else:
         return p
 
+
 def get_converted_param(ap):
     if not (isinstance(ap, list) or isinstance(ap, dict) or isinstance(ap, param)):
         raise TypeError('`ap`はlist or dict or paramである必要があります。')
     return  _convert_param(ap)
+
 
 def get_converted_params(params):
     if not isinstance(params, collections.Iterable):
