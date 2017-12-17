@@ -79,16 +79,6 @@ def get_setttings_from_configpath(configpath):
     }
 
 
-class DuplicateChecker:
-    def __init__(self):
-        self._c = set()
-
-    def add(self, o):
-        if o in self._c:
-            raise Exception('duplicated!')
-        self._c.add(o)
-
-
 class param:
     def __init__(self, *args, **kwargs):
         self._args = args
@@ -99,43 +89,8 @@ class param:
         sorted_kwargs = collections.OrderedDict([(k, v) for k, v in sorted(self._kwargs.items(), key=lambda x: x[0])])
         return self._args, sorted_kwargs
 
-    @property
-    def name(self):
-        args, kwargs = self.item
-        args_name = '__'.join([str(o) for o in args])
-        kwargs_name = '__'.join(['{}_{}'.format(k, v) for k, v in kwargs.items()])
-        if args_name == '' and kwargs_name == '':
-            return 'no_params'
-        if args_name == '':
-            return kwargs_name
-        if kwargs_name == '':
-            return args_name
-
-        return args_name + '__' + kwargs_name
-
     def __repr__(self):
         return str(self.item)
-
-
-def _convert_param(p):
-    if isinstance(p, list):
-        return param(*p)
-    elif isinstance(p, dict):
-        return param(**p)
-    else:
-        return p
-
-def get_converted_param(ap):
-    if not (isinstance(ap, list) or isinstance(ap, dict) or isinstance(ap, param)):
-        raise TypeError('`ap`はlist or dict or paramである必要があります。')
-    return  _convert_param(ap)
-
-def get_converted_params(params):
-    if not isinstance(params, collections.Iterable):
-        raise TypeError('`params` must be iterable.')
-
-    # paramsの要素はdict or list or param。dict,listの場合はparamに変換
-    return  [get_converted_param(p) for p in params]
 
 
 def get_material_id(material_ids_or_tags):

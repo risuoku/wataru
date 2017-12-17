@@ -5,6 +5,8 @@ import time
 import subprocess
 import hashlib
 import wataru.exceptions as wtex
+import pickle
+import os
 from wataru.logging import getLogger
 
 logger = getLogger(__name__)
@@ -62,3 +64,22 @@ def get_hash(s):
     if isinstance(s, str):
         s = s.encode('utf-8')
     return hashlib.sha256(s).hexdigest()
+
+
+def cache_located_at(filepath, cache_must_exist = False):
+    def _func(f):
+        def __func(*args, **kwargs):
+            if os.path.isfile(filepath):
+                with open(filepath, 'rb') as fp: 
+                    obj = pickle.load(fp)
+                return obj 
+            
+            if cache_must_exist:
+                raise Exception('cache not be found!')
+            result =  f(*args, **kwargs)
+
+            with open(filepath, 'wb') as fp: 
+                pickle.dump(result, fp) 
+            return result
+        return __func
+    return _func

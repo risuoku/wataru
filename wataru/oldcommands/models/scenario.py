@@ -3,7 +3,6 @@ from wataru.logging import getLogger
 import wataru.workflow.project as wfproject
 import wataru.workflow.state as wfstate
 import wataru.workflow.scenario as wfscenario
-import wataru.workflow.operations as wfoperations
 
 import yaml
 import os
@@ -21,6 +20,14 @@ class Materialize(CommandBase):
 
     def execute(self, namespace):
         settings_general = self.settings['general']
+        try:
+            smod = importlib.import_module('.'.join([settings_general['scenarios_module_name'], namespace.scenarioname, settings_general['scenario_entry_module_name']]))
+            sobj = getattr(smod, settings_general['scenario_entry_function_name'])()
+            sobj.set('package_name', '.'.join([settings_general['scenarios_module_name'], namespace.scenarioname]))
+            sobj.build()
+        except:
+            logger.error('instanize scenario object failed!')
+            raise
         material_id = wfproject.materialize(
             namespace.scenarioname,
             os.path.join(settings_general['project_base_path'], settings_general['scenarios_module_name'], namespace.scenarioname),
@@ -30,7 +37,7 @@ class Materialize(CommandBase):
         self.material_id = material_id
 
 
-class Train(CommandBase):
+class Run(CommandBase):
     def apply_arguments(self, parser):
         parser.add_argument('--config-path', action='store', dest='configpath', default='')
         parser.add_argument('--allow-completed', action='store_true', dest='allowcompleted', default=False)
@@ -42,7 +49,7 @@ class Train(CommandBase):
         cmd.execute(namespace)
 
         settings_general = self.settings['general']
-        wfoperations.train(cmd.material_id, settings_general, namespace.allowcompleted)
+        wfscenario.run(cmd.material_id, settings_general, need_not_completed = not namespace.allowcompleted)
 
 
 class Ls(CommandBase):

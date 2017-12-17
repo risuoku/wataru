@@ -1,12 +1,12 @@
+import wataru.workflow.scenario as wfscenario
 import wataru.workflow.state as wfstate
 import wataru.workflow.utils as wfutils
-import wataru.workflow.operations as wfoperation
 
 import os
 import sys
 
 
-def get_material(material_id_or_tag, load_enabled = False, configpath=''):
+def get_material(material_id_or_tag, configpath=''):
     # prepare settings
     settings = wfutils.get_setttings_from_configpath(os.path.abspath(configpath))
 
@@ -20,4 +20,4 @@ def get_material(material_id_or_tag, load_enabled = False, configpath=''):
 
     material_id = wfutils.get_material_id(material_id_or_tag)
 
-    return wfoperation.build_material(material_id, settings['general'], load_enabled)
+    return wfscenario.build(material_id, settings['general'], need_not_completed = False)

@@ -14,14 +14,14 @@ tree = {
     },
     'scenario': {
         'materialize': scenario.Materialize(),
-        'train': scenario.Train(),
+        'run': scenario.Run(),
         'ls': scenario.Ls(),
         'sync': scenario.Sync(),
         'rm': scenario.Rm(),
     },
     'material': {
         'ls': material.Ls(),
-        'train': material.Train(),
+        'run': material.Run(),
         'rm': material.Rm(),
         'inspect': material.Inspect(),
     },

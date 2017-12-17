@@ -27,8 +27,8 @@ class Scenario(Base):
 class Material(Base):
     class Status(enum.Enum):
         CREATED = 'created'
-        PROCESSING = 'train_processing'
-        COMPLETED = 'train_completed'
+        PROCESSING = 'processing'
+        COMPLETED = 'completed'
 
     __tablename__ = 'materials'
 
@@ -39,6 +39,3 @@ class Material(Base):
     status = Column(String, default=Status.CREATED.value)
     created_at = Column(DateTime, default=datetime.datetime.now())
     updated_at = Column(DateTime, default=datetime.datetime.now())
-
-    def is_completed(self):
-        return self.status == self.Status.COMPLETED.value

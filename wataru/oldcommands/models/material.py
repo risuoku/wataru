@@ -4,7 +4,6 @@ import wataru.workflow.project as wfproject
 import wataru.workflow.scenario as wfscenario
 import wataru.workflow.inspector as wfinspector
 import wataru.workflow.utils as wfutils
-import wataru.workflow.operations as wfoperations
 
 import os
 import sys
@@ -34,7 +33,7 @@ class Ls(CommandBase):
         ])
 
 
-class Train(CommandBase):
+class Run(CommandBase):
     def apply_arguments(self, parser):
         parser.add_argument('--config-path', action='store', dest='configpath', default='')
         parser.add_argument('--allow-completed', action='store_true', dest='allowcompleted', default=False)
@@ -42,7 +41,7 @@ class Train(CommandBase):
 
     def execute(self, namespace):
         settings_general = self.settings['general']
-        wfoperations.train(namespace.material_id, settings_general, namespace.allowcompleted)
+        wfscenario.run(namespace.material_id, settings_general, need_not_completed = not namespace.allowcompleted)
 
 
 class Rm(CommandBase):
@@ -78,19 +77,18 @@ class Inspect(CommandBase):
             'material_status': mat.material_status,
             'scenario': {
                 'name': mat.name,
-                'managers': [
+                'providers': [
                     {
-                        'name': mgrname,
-                        'param': mgr.param,
-                        'models': [
+                        'name': pname,
+                        'items': p.item,
+                        'trainers': [
                             {
-                                'name': mdlname,
-                                'param': mdl.param
+                                'name': tr_name,
                             }
-                            for mdlname, mdl in mgr.models.items()
+                            for tr_name, tr in p.trainers.items()
                         ]
                     }
-                    for mgrname, mgr in mat.managers.items()
+                    for pname, p in mat.providers.items()
                 ]
             }
         }

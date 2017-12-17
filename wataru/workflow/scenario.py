@@ -5,7 +5,7 @@ from wataru.workflow.state import (
     session_scope,
     get_session,
 )
-from wataru.workflow.provider import Provider
+from wataru.workflow.manager import ModelManager
 
 import wataru.workflow.state as wfstate
 import wataru.workflow.utils as wfutils
@@ -21,125 +21,65 @@ logger = getLogger(__name__)
 
 
 class Scenario:
-    provider_cls = []
+    manager_cls = []
 
-    def __init__(self, config = None):
-        self._config = config
-        self._name = None
-        self._loaded_data = None
-        self._providers = {}
-        self._package_name = None
-        self._material_location = None
-        self._material_status = None
-        self._material_status_completed = False
+    def __init__(self, package_name, material_location, material_status):
+        self.name = None
+        self.loaded_data = None
+        self.managers = {}
+        self.package_name = package_name
+        self.material_location = material_location
+        self.material_status = material_status
 
-    def build(self):
-        self._name = self.__class__.__name__
-        self._loaded_data = self.load()
+    def build_managers(self, load_enabled):
+        self.name = self.__class__.__name__
 
-        raw_providers = self.__class__.provider_cls
-        providers = collections.OrderedDict()
-        if not isinstance(raw_providers, list):
-            raise TypeError('`providers` must be list.')
-        for rawp in raw_providers:
-            if isinstance(rawp, collections.Iterable):
+        if load_enabled:
+            self.loaded_data = self.load()
+
+        raw_managers = self.__class__.manager_cls
+        managers = collections.OrderedDict()
+        if not isinstance(raw_managers, collections.Iterable):
+            raw_managers = [raw_managers]
+
+        manager_names_dc = wfutils.DuplicateChecker()
+        for rawm in raw_managers:
+            if isinstance(rawm, collections.Iterable):
                 # for generator
-                for a in rawp:
-                    if not issubclass(a, Provider):
+                for a in rawm:
+                    if not issubclass(a, ModelManager):
                         raise TypeError('invalid type!')
-                    providers[a.__name__] = a
-            elif issubclass(rawp, Provider):
-                # just provider
-                providers[rawp.__name__] = rawp
+                    manager_names_dc.add(a.__name__)
+                    managers[a.__name__] = a
+            elif issubclass(rawm, ModelManager):
+                # just manager
+                manager_names_dc.add(rawm.__name__)
+                managers[rawm.__name__] = rawm
             else:
                 raise TypeError('invalid type!')
         
-        logger.debug('registered providers .. {}'.format(', '.join([k for k, v in providers.items()])))
-        self._providers = dict([
-            (pname, p(self._loaded_data, self._package_name, self._material_location, self._material_status_completed))
-            for pname, p in providers.items()
+        logger.debug('registered managers .. {}'.format(', '.join([k for k, v in managers.items()])))
+        self.managers = dict([
+            (mname, m(self.loaded_data, self.material_location))
+            for mname, m in managers.items()
         ])
-        for name, p in self._providers.items():
-            p.build()
-            logger.debug('provider {} build done.'.format(name))
+        for name, m in self.managers.items():
+            m.build_models()
+            logger.debug('manager {} build done.'.format(name))
 
         return self
 
-    def run(self):
-        # run providers
-        for name, p in self._providers.items():
-            p.run()
-            logger.debug('provider {} run done.'.format(name))
+    def train_all(self):
+        for name, m in self.managers.items():
+            m.train_all()
+            logger.debug('manager {} train_all done.'.format(name))
         return self
 
-    @property
-    def config(self):
-        return self._config
-
-    @property
-    def providers(self):
-        return self._providers
-
-    @property
-    def name(self):
-        return self._name
+    def prepare_all(self):
+        for name, m in self.managers.items():
+            m.prepare_all()
+            logger.debug('manager {} prepare_all done.'.format(name))
+        return self
 
     def load(self):
         return None
-
-    def set(self, key, value):
-        setattr(self, '_' + key, value)
-
-    def __getattr__(self, name):
-        return getattr(self, '_' + name)
-
-
-def build(material_id, settings, need_not_completed = False):
-    target_dir = os.path.join(settings['materialized_dir'], material_id)
-    if os.path.isdir(target_dir):
-        sys.path.append(settings['materialized_dir'])
-        smod = importlib.import_module(material_id + '.' + settings['scenario_entry_module_name'])
-        sobj = getattr(smod, settings['scenario_entry_function_name'])()
-
-        # inject runtime attributes
-        sobj.set('package_name', material_id)
-        sobj.set('material_location', target_dir)
-
-        # check status
-        rosess = get_session()
-        mm_all = rosess.query(ModelMaterial).filter_by(id=material_id)
-        if mm_all.count() > 0:
-            mm = mm_all[0]
-
-            # raise Exception
-            if need_not_completed and mm.status == ModelMaterial.Status.COMPLETED.value:
-                raise Exception('{} already completed.'.format(material_id))
-
-            # set status
-            sobj.set('material_status', mm.status)
-            sobj.set('material_status_completed', mm.status == ModelMaterial.Status.COMPLETED.value)
-        else:
-            raise Exception('unexpected error! .. material management system may be broken.')
-        return sobj.build()
-    else:
-        raise Exception('material not found!')
-
-
-def run(material_id_or_tag, settings, need_not_completed = True):
-    material_id = wfutils.get_material_id(material_id_or_tag)
-    sobj = build(material_id, settings, need_not_completed = need_not_completed)
-
-    with session_scope() as session:
-        # notify processing
-        mm = session.query(ModelMaterial).filter_by(id=material_id).first()
-        mm.status = ModelMaterial.Status.PROCESSING.value
-
-    with session_scope() as session:
-        # update meta
-        mm = session.query(ModelMaterial).filter_by(id=material_id).first()
-        mm.updated_at = datetime.datetime.now()
-        mm.status = ModelMaterial.Status.COMPLETED.value
-
-        # run
-        sobj.run()
-    logger.debug('run {} done.'.format(material_id))
