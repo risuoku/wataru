@@ -14,12 +14,13 @@ logger = getLogger(__name__)
 class ModelManager:
     model_generator = []
 
-    def __init__(self, rawdata, material_location):
+    def __init__(self, rawdata, material_location, is_materialized):
         self.model_classes = {}
         self.models = {}
         self.data = None
         self.rawdata = rawdata
         self.material_location = material_location
+        self.is_materialized = is_materialized
 
     def build_models(self):
         model_names_dc = wfutils.DuplicateChecker()
@@ -30,19 +31,22 @@ class ModelManager:
             self.model_classes[self.name() + '**' + mc.__name__] = mc
 
         transform = self.transform
-        transform = cache_located_at(
-            os.path.join(self.material_location, 'transformed_' + get_hash(self.name()) + '.pickle'),
-            cache_must_exist = (self.rawdata is None)
-        )(transform)
-        self.data = transform()
-
+        if self.is_materialized: # use cache if materialized
+            transform = cache_located_at(
+                os.path.join(self.material_location, 'transformed_' + get_hash(self.name()) + '.pickle'),
+                cache_must_exist = (self.rawdata is None)
+            )(transform)
+        self.data = transform() 
         for name, mc in self.model_classes.items():
             self.models[name] = mc(self.data, self.material_location, name)
             logger.debug('model {} build done.'.format(name))
 
     def train_all(self):
         for name, mo in self.models.items():
-            self.train(name)
+            if self.is_materialized:
+                self.train(name)
+            else:
+                self.train_without_materialized(name)
         return self
 
     def prepare_all(self):
@@ -56,6 +60,12 @@ class ModelManager:
         target.prepare_finished('train')
         target.fit()
         target.save()
+        return self
+
+    def train_without_materialized(self, name):
+        target = self.models[name]
+        target.prepare()
+        target.fit()
         return self
 
     def prepare(self, name):

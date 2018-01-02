@@ -31,7 +31,7 @@ class Scenario:
         self.material_location = material_location
         self.material_status = material_status
 
-    def build_managers(self, load_enabled):
+    def build_managers(self, load_enabled, is_materialized):
         self.name = self.__class__.__name__
 
         if load_enabled:
@@ -60,7 +60,7 @@ class Scenario:
         
         logger.debug('registered managers .. {}'.format(', '.join([k for k, v in managers.items()])))
         self.managers = dict([
-            (mname, m(self.loaded_data, self.material_location))
+            (mname, m(self.loaded_data, self.material_location, is_materialized))
             for mname, m in managers.items()
         ])
         for name, m in self.managers.items():

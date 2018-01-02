@@ -20,4 +20,4 @@ def get_material(material_id_or_tag, load_enabled = False, configpath=''):
 
     material_id = wfutils.get_material_id(material_id_or_tag)
 
-    return wfoperation.build_material(material_id, settings['general'], load_enabled)
+    return wfoperation.build_material(material_id, settings['general'], load_enabled, True)

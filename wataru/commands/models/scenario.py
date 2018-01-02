@@ -34,15 +34,19 @@ class Train(CommandBase):
     def apply_arguments(self, parser):
         parser.add_argument('--config-path', action='store', dest='configpath', default='')
         parser.add_argument('--allow-completed', action='store_true', dest='allowcompleted', default=False)
+        parser.add_argument('--materialize-enabled', action='store_true', dest='materialize_enabled', default=False)
         parser.add_argument('scenarioname', action='store')
 
     def execute(self, namespace):
-        cmd = Materialize()
-        cmd.settings = self.settings
-        cmd.execute(namespace)
-
-        settings_general = self.settings['general']
-        wfoperations.train(cmd.material_id, settings_general, namespace.allowcompleted)
+        if namespace.materialize_enabled:
+            cmd = Materialize()
+            cmd.settings = self.settings
+            cmd.execute(namespace)
+            settings_general = self.settings['general']
+            wfoperations.train(cmd.material_id, settings_general, namespace.allowcompleted)
+        else:
+            settings_general = self.settings['general']
+            wfoperations.train_without_materialized(namespace.scenarioname, settings_general)
 
 
 class Ls(CommandBase):

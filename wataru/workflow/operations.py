@@ -26,7 +26,7 @@ def build_material(material_id, settings, load_enabled):
         sobj = None
         if mm_all.count() > 0:
             mm = mm_all[0]
-            sobj = getattr(smod, settings['scenario_entry_function_name'])(material_id, target_dir, mm.status).build_managers(load_enabled)
+            sobj = getattr(smod, settings['scenario_entry_function_name'])(material_id, target_dir, mm.status).build_managers(load_enabled, True)
         else:
             raise Exception('unexpected error! .. material management system may be broken.')
         return sobj
@@ -61,3 +61,14 @@ def train(material_id_or_tag, settings, allowcompleted):
         # run
         sobj.train_all()
     logger.debug('train_all {} done.'.format(material_id))
+
+
+def train_without_materialized(scenario_name, settings):
+    """ materialize無しでモデルを訓練する """
+    smod = importlib.import_module('{}.{}.{}'.format(
+        settings['scenarios_module_name'],
+        scenario_name,
+        settings['scenario_entry_module_name'],
+    ))
+    sobj = getattr(smod, settings['scenario_entry_function_name'])(None, None, None).build_managers(True, False)
+    sobj.train_all()

@@ -7,11 +7,11 @@ class Model:
         self.material_location = material_location
         self.name = name
 
-    def load(self):
-        print('load done.')
+    def prepare(self):
+        print('prepare done.')
 
-    def load_finished(self):
-        print('load finished done.')
+    def prepare_finished(self):
+        print('prepare finished done.')
 
 
     def fit(self):
