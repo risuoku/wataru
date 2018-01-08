@@ -1,4 +1,5 @@
 import wataru.workflow.utils as wfutils
+from wataru.utils import get_hash
 
 
 class Model:
@@ -6,6 +7,9 @@ class Model:
         self.data = data
         self.material_location = material_location
         self.name = name
+
+    def get_hashed_id(self):
+        return get_hash(self.name)
 
     def prepare(self):
         print('prepare done.')

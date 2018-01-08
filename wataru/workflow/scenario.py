@@ -81,5 +81,16 @@ class Scenario:
             logger.debug('manager {} prepare_all done.'.format(name))
         return self
 
+    def get_model_by_hash(self, hashed_id):
+        target = None
+        for mgr in self.managers.values():
+            for mdl in mgr.models.values():
+                if mdl.get_hashed_id() == hashed_id:
+                    target = mdl
+                    break
+        if target is None:
+            raise ValueError('hashed_id: {} not found.'.format(hashed_id))
+        return target
+
     def load(self):
         return None

@@ -85,6 +85,7 @@ class Inspect(CommandBase):
                         'models': [
                             {
                                 'name': mdlname,
+                                'hashed_id': mdl.get_hashed_id(),
                                 'param': mdl.param
                             }
                             for mdlname, mdl in mgr.models.items()

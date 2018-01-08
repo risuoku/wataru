@@ -3,7 +3,6 @@ from wataru.workflow.model import (
     model_generator,
 )
 from wataru.logging import getLogger
-from wataru.utils import get_hash
 import collections
 import importlib
 import os
@@ -36,5 +35,5 @@ class ChainerModel(Model):
         logger.debug('save {} done.'.format(self.name))
 
     def get_model_filepath_name(self):
-        model_path = os.path.join(self.material_location, get_hash(self.name) + '.npz')
+        model_path = os.path.join(self.material_location, self.get_hashed_id() + '.npz')
         return model_path, os.path.isfile(model_path)
