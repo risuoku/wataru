@@ -3,10 +3,11 @@ from wataru.utils import get_hash
 
 
 class Model:
-    def __init__(self, data, material_location, name):
+    def __init__(self, data, material_location, name, manager_param):
         self.data = data
         self.material_location = material_location
         self.name = name
+        self.manager_param = manager_param
 
     def get_hashed_id(self):
         return get_hash(self.name)

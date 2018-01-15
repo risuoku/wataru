@@ -38,7 +38,7 @@ class ModelManager:
             )(transform)
         self.data = transform() 
         for name, mc in self.model_classes.items():
-            self.models[name] = mc(self.data, self.material_location, name)
+            self.models[name] = mc(self.data, self.material_location, name, self.param)
             logger.debug('model {} build done.'.format(name))
 
     def train_all(self):
