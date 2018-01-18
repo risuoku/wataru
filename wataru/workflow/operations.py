@@ -20,6 +20,7 @@ def build_material(material_id, settings, load_enabled):
     target_dir = os.path.join(settings['materialized_dir'], material_id)
     if os.path.isdir(target_dir):
         sys.path.append(settings['materialized_dir'])
+        os.environ['WATARU_MATERIAL_ID'] = material_id
         smod = importlib.import_module(material_id + '.' + settings['scenario_entry_module_name'])
         # check status
         mm_all = get_session().query(ModelMaterial).filter_by(id=material_id)
